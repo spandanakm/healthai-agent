@@ -55,7 +55,7 @@ export default function Header() {
               fontSize: "16px",
             }}
           >
-            🏥
+            {"\uD83C\uDFE5"}
           </div>
 
           <div
@@ -86,7 +86,7 @@ export default function Header() {
                 textOverflow: "ellipsis",
               }}
             >
-              Symptom checker · Medical Q&A · Mental health · Report
+              Symptom checker | Medical Q&A | Mental health | Report
             </div>
           </div>
         </div>

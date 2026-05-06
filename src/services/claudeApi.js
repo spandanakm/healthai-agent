@@ -1,6 +1,9 @@
+const API_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:3001/api/chat";
+
 async function sendMessage(messages, systemPrompt, fileData) {
   try {
-    const response = await fetch("http://localhost:3001/api/chat", {
+    const response = await fetch(API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

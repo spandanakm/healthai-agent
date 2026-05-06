@@ -77,63 +77,68 @@ export default function useChat() {
     }
   };
 
-  const attachFile = (file) =>
-    new Promise((resolve, reject) => {
-      if (!file) {
-        setAttachedFile(null);
-        resolve();
-        return;
-      }
+  const attachFile = async (file) => {
+    if (!file) {
+      setAttachedFile(null);
+      return false;
+    }
 
-      const isImage = file.type.startsWith("image/");
-      const isTextFile =
-        file.type.startsWith("text/") ||
-        [
-          "application/json",
-          "application/xml",
-        ].includes(file.type) ||
-        /\.(txt|csv|md|json|xml)$/i.test(file.name);
+    const isImage = file.type.startsWith("image/");
+    const isTextFile =
+      file.type.startsWith("text/") ||
+      [
+        "application/json",
+        "application/xml",
+      ].includes(file.type) ||
+      /\.(txt|csv|md|json|xml)$/i.test(file.name);
 
-      if (!isImage && !isTextFile) {
-        const typeError = "Only image and text-based files are supported.";
-        setError(typeError);
-        reject(new Error(typeError));
-        return;
-      }
+    if (!isImage && !isTextFile) {
+      setAttachedFile(null);
+      setError("Only image and text-based files are supported.");
+      return false;
+    }
 
-      const reader = new FileReader();
+    try {
+      const data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
 
-      reader.onload = () => {
-        const result = reader.result;
-        const data =
-          isImage && typeof result === "string"
-            ? result.split(",")[1] ?? ""
-            : result;
+        reader.onload = () => {
+          const result = reader.result;
+          const nextData =
+            isImage && typeof result === "string"
+              ? result.split(",")[1] ?? ""
+              : result;
 
-        setAttachedFile({
-          file,
-          data,
-          type: isImage ? "image" : "text",
-          mimeType: file.type,
-          name: file.name,
-        });
-        setError(null);
-        resolve();
-      };
+          resolve(nextData);
+        };
 
-      reader.onerror = () => {
-        const fileError = "Failed to read file.";
-        setError(fileError);
-        reject(new Error(fileError));
-      };
+        reader.onerror = () => {
+          reject(new Error("Failed to read file."));
+        };
 
-      if (file.type.startsWith("image/")) {
-        reader.readAsDataURL(file);
-        return;
-      }
+        if (isImage) {
+          reader.readAsDataURL(file);
+          return;
+        }
 
-      reader.readAsText(file);
-    });
+        reader.readAsText(file);
+      });
+
+      setAttachedFile({
+        file,
+        data,
+        type: isImage ? "image" : "text",
+        mimeType: file.type,
+        name: file.name,
+      });
+      setError(null);
+      return true;
+    } catch (err) {
+      setAttachedFile(null);
+      setError(err?.message || "Failed to read file.");
+      return false;
+    }
+  };
 
   const clearFile = () => {
     setAttachedFile(null);

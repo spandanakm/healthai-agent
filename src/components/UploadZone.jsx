@@ -35,11 +35,16 @@ export default function UploadZone({ onFile, attachedFile, onClear }) {
   const dragDepthRef = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
 
-  const handleFile = (file) => {
-    if (file) {
-      onFile?.(file);
+  const handleFile = async (file) => {
+    try {
+      if (file) {
+        await onFile?.(file);
+      }
+    } catch (error) {
+      console.error("Failed to attach file:", error);
+    } finally {
+      setIsDragging(false);
     }
-    setIsDragging(false);
   };
 
   const handleInputChange = (event) => {

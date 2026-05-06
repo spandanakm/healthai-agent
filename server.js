@@ -1,117 +1,26 @@
 require("dotenv").config();
 
 const express = require("express");
-const cors = require("cors");
 const axios = require("axios");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-const ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
 
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-  })
-);
+// ✅ CORS fix - allows ANY localhost port
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (!origin || origin.startsWith("http://localhost:")) {
+    res.setHeader("Access-Control-Allow-Origin", origin || "*");
+  }
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 app.use(express.json({ limit: "10mb" }));
-
-function buildTextBlock(text) {
-  return { type: "text", text };
-}
-
-function normalizeMessages(messages, fileData) {
-  const safeMessages = Array.isArray(messages)
-    ? messages
-        .filter(
-          (message) =>
-            message &&
-            (message.role === "user" || message.role === "assistant")
-        )
-        .map((message) => ({
-          role: message.role,
-          content: message.content,
-        }))
-    : [];
-
-  if (safeMessages.length === 0) {
-    safeMessages.push({
-      role: "user",
-      content: [buildTextBlock("Hello")],
-    });
-  }
-
-  const lastUserIndex = [...safeMessages]
-    .reverse()
-    .findIndex((message) => message?.role === "user");
-
-  const userMessageIndex =
-    lastUserIndex === -1 ? -1 : safeMessages.length - 1 - lastUserIndex;
-
-  if (userMessageIndex === -1) {
-    safeMessages.push({
-      role: "user",
-      content: [buildTextBlock("Hello")],
-    });
-  }
-
-  const targetIndex = userMessageIndex === -1 ? safeMessages.length - 1 : userMessageIndex;
-  const targetMessage = safeMessages[targetIndex] || { role: "user", content: [] };
-  const contentBlocks = Array.isArray(targetMessage.content)
-    ? [...targetMessage.content]
-    : typeof targetMessage.content === "string"
-      ? [buildTextBlock(targetMessage.content)]
-      : [];
-
-  if (fileData?.type === "text" && fileData.data) {
-    contentBlocks.unshift(
-      buildTextBlock(`Attached file content from ${fileData.name || "uploaded file"}:\n${fileData.data}\n\n`)
-    );
-  }
-
-  if (fileData?.type === "image" && fileData.data) {
-    const mediaType = fileData.mediaType || fileData.mimeType || "image/png";
-    const base64Data = String(fileData.data).replace(
-      /^data:[^;]+;base64,/,
-      ""
-    );
-
-    contentBlocks.push({
-      type: "image",
-      source: {
-        type: "base64",
-        media_type: mediaType,
-        data: base64Data,
-      },
-    });
-  }
-
-  safeMessages[targetIndex] = {
-    role: targetMessage.role || "user",
-    content: contentBlocks.length > 0 ? contentBlocks : [buildTextBlock("Hello")],
-  };
-
-  return safeMessages.map((message) => ({
-    role: message.role,
-    content: Array.isArray(message.content)
-      ? message.content
-      : [buildTextBlock(String(message.content || ""))],
-  }));
-}
-
-function extractAssistantText(responseData) {
-  const blocks = responseData?.content;
-
-  if (!Array.isArray(blocks)) {
-    return "";
-  }
-
-  return blocks
-    .filter((block) => block?.type === "text" && typeof block.text === "string")
-    .map((block) => block.text)
-    .join("\n")
-    .trim();
-}
 
 app.post("/api/chat", async (req, res) => {
   try {
@@ -119,64 +28,98 @@ app.post("/api/chat", async (req, res) => {
     const apiKey =
       process.env.ANTHROPIC_API_KEY || process.env.REACT_APP_ANTHROPIC_KEY;
 
+    console.log("✅ API Key found:", apiKey ? "YES" : "NO - CHECK .env FILE!");
+
     if (!apiKey) {
       return res.status(500).json({
-        error:
-          "Missing ANTHROPIC_API_KEY in environment variables.",
+        error: "Missing API key. Add ANTHROPIC_API_KEY to .env file.",
       });
     }
 
-    if (!Array.isArray(messages)) {
-      return res.status(400).json({
-        error: "Invalid request body: messages must be an array.",
+    const safeMessages = Array.isArray(messages)
+      ? messages
+          .filter((m) => m && (m.role === "user" || m.role === "assistant"))
+          .map((m) => ({
+            role: m.role,
+            content: Array.isArray(m.content)
+              ? m.content
+              : [{ type: "text", text: String(m.content || "") }],
+          }))
+      : [{ role: "user", content: [{ type: "text", text: "Hello" }] }];
+
+    if (safeMessages.length === 0) {
+      safeMessages.push({
+        role: "user",
+        content: [{ type: "text", text: "Hello" }],
       });
     }
 
-    const anthropicPayload = {
-      model: ANTHROPIC_MODEL,
+    // Handle file attachment on last user message
+    const lastUserIdx = safeMessages.map(m => m.role).lastIndexOf("user");
+    if (lastUserIdx !== -1 && fileData?.data) {
+      if (fileData.type === "image") {
+        safeMessages[lastUserIdx].content.push({
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: fileData.mimeType || "image/png",
+            data: String(fileData.data).replace(/^data:[^;]+;base64,/, ""),
+          },
+        });
+      } else if (fileData.type === "text") {
+        safeMessages[lastUserIdx].content.unshift({
+          type: "text",
+          text: `File: ${fileData.name || "uploaded"}\n\n${fileData.data}\n\n`,
+        });
+      }
+    }
+
+    const payload = {
+      model: "claude-sonnet-4-20250514",
       max_tokens: 1500,
-      messages: normalizeMessages(messages, fileData),
+      messages: safeMessages,
     };
 
-    if (typeof systemPrompt === "string" && systemPrompt.trim()) {
-      anthropicPayload.system = systemPrompt.trim();
+    if (systemPrompt?.trim()) {
+      payload.system = systemPrompt.trim();
     }
 
-    const response = await axios.post(ANTHROPIC_URL, anthropicPayload, {
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      timeout: 30000,
-    });
+    console.log("📤 Sending to Anthropic...");
 
-    const assistantText = extractAssistantText(response.data);
+    const response = await axios.post(
+      "https://api.anthropic.com/v1/messages",
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        timeout: 30000,
+      }
+    );
 
-    if (!assistantText) {
-      return res.status(502).json({
-        error: "Anthropic returned no assistant text in the response.",
-      });
-    }
+    const reply = response.data?.content
+      ?.filter((b) => b?.type === "text")
+      ?.map((b) => b.text)
+      ?.join("\n")
+      ?.trim();
 
-    return res.json({ reply: assistantText });
+    console.log("✅ Got reply from Anthropic!");
+
+    return res.json({ reply: reply || "No response received." });
   } catch (error) {
-    const statusCode = error.response?.status || 500;
-    const providerError =
-      error.response?.data?.error?.message ||
-      error.response?.data?.message ||
-      error.message;
-
-    return res.status(statusCode).json({
-      error: `Chat request failed: ${providerError}`,
+    console.error("❌ Error:", error.response?.data || error.message);
+    return res.status(error.response?.status || 500).json({
+      error:
+        error.response?.data?.error?.message ||
+        error.message ||
+        "Something went wrong.",
     });
   }
 });
 
-app.use((req, res) => {
-  res.status(404).json({ error: "Route not found." });
-});
-
 app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
+  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`📋 API Key loaded: ${process.env.ANTHROPIC_API_KEY ? "YES ✅" : "NO ❌ - Add to .env file!"}`);
 });
