@@ -1,14 +1,16 @@
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, ".env") });
-console.log("🔑 API Key Status:", process.env.ANTHROPIC_API_KEY ? "LOADED ✅" : "MISSING ❌");
 
 const express = require("express");
-const axios = require("axios");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// ✅ CORS fix - allows ANY localhost port
+console.log("🔑 Gemini Key:", process.env.GEMINI_API_KEY ? "LOADED ✅" : "MISSING ❌");
+
+// CORS - allow any localhost port
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (!origin || origin.startsWith("http://localhost:")) {
@@ -16,9 +18,7 @@ app.use((req, res, next) => {
   }
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
+  if (req.method === "OPTIONS") return res.sendStatus(200);
   next();
 });
 
@@ -27,101 +27,68 @@ app.use(express.json({ limit: "10mb" }));
 app.post("/api/chat", async (req, res) => {
   try {
     const { messages, systemPrompt, fileData } = req.body || {};
-    const apiKey =
-      process.env.ANTHROPIC_API_KEY || process.env.REACT_APP_ANTHROPIC_KEY;
 
-    console.log("✅ API Key found:", apiKey ? "YES" : "NO - CHECK .env FILE!");
-
-    if (!apiKey) {
-      return res.status(500).json({
-        error: "Missing API key. Add ANTHROPIC_API_KEY to .env file.",
-      });
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ error: "Missing GEMINI_API_KEY in .env file." });
     }
 
-    const safeMessages = Array.isArray(messages)
-      ? messages
-          .filter((m) => m && (m.role === "user" || m.role === "assistant"))
-          .map((m) => ({
-            role: m.role,
-            content: Array.isArray(m.content)
-              ? m.content
-              : [{ type: "text", text: String(m.content || "") }],
-          }))
-      : [{ role: "user", content: [{ type: "text", text: "Hello" }] }];
-
-    if (safeMessages.length === 0) {
-      safeMessages.push({
-        role: "user",
-        content: [{ type: "text", text: "Hello" }],
-      });
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: "messages must be a non-empty array." });
     }
 
-    // Handle file attachment on last user message
-    const lastUserIdx = safeMessages.map(m => m.role).lastIndexOf("user");
-    if (lastUserIdx !== -1 && fileData?.data) {
-      if (fileData.type === "image") {
-        safeMessages[lastUserIdx].content.push({
-          type: "image",
-          source: {
-            type: "base64",
-            media_type: fileData.mimeType || "image/png",
-            data: String(fileData.data).replace(/^data:[^;]+;base64,/, ""),
-          },
-        });
-      } else if (fileData.type === "text") {
-        safeMessages[lastUserIdx].content.unshift({
-          type: "text",
-          text: `File: ${fileData.name || "uploaded"}\n\n${fileData.data}\n\n`,
-        });
-      }
-    }
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.0-flash",
+      systemInstruction: systemPrompt || "You are a helpful healthcare assistant.",
+    });
 
-    const payload = {
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1500,
-      messages: safeMessages,
-    };
-
-    if (systemPrompt?.trim()) {
-      payload.system = systemPrompt.trim();
-    }
-
-    console.log("📤 Sending to Anthropic...");
-
-    const response = await axios.post(
-      "https://api.anthropic.com/v1/messages",
-      payload,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-        },
-        timeout: 30000,
-      }
+    const safeMessages = messages.filter(
+      (m) => m && (m.role === "user" || m.role === "assistant")
     );
 
-    const reply = response.data?.content
-      ?.filter((b) => b?.type === "text")
-      ?.map((b) => b.text)
-      ?.join("\n")
-      ?.trim();
+    const history = safeMessages.slice(0, -1).map((m) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: String(m.content || "") }],
+    }));
 
-    console.log("✅ Got reply from Anthropic!");
+    const lastMessage = safeMessages[safeMessages.length - 1];
+    let userContent = String(lastMessage?.content || "Hello");
 
-    return res.json({ reply: reply || "No response received." });
+    // Handle text file
+    if (fileData?.type === "text" && fileData?.data) {
+      userContent = "Medical Report:\n" + fileData.data + "\n\n" + userContent;
+    }
+
+    const chat = model.startChat({ history });
+
+    let result;
+
+    // Handle image file
+    if (fileData?.type === "image" && fileData?.data) {
+      result = await chat.sendMessage([
+        { text: userContent },
+        {
+          inlineData: {
+            mimeType: fileData.mimeType || "image/png",
+            data: fileData.data,
+          },
+        },
+      ]);
+    } else {
+      result = await chat.sendMessage(userContent);
+    }
+
+    const reply = result.response.text();
+    console.log("✅ Gemini replied!");
+    return res.json({ reply });
+
   } catch (error) {
-    console.error("❌ Error:", error.response?.data || error.message);
-    return res.status(error.response?.status || 500).json({
-      error:
-        error.response?.data?.error?.message ||
-        error.message ||
-        "Something went wrong.",
+    console.error("❌ Gemini Error:", error.message);
+    return res.status(500).json({
+      error: error.message || "Something went wrong.",
     });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
-  console.log(`📋 API Key loaded: ${process.env.ANTHROPIC_API_KEY ? "YES ✅" : "NO ❌ - Add to .env file!"}`);
+  console.log("✅ Server running on http://localhost:" + PORT);
 });
