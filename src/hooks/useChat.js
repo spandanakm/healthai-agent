@@ -136,42 +136,6 @@ function buildEntryResponse(entry, text) {
   };
 }
 
-async function fetchClaudeFallback(messages) {
-  const envApiKey = process.env.REACT_APP_ANTHROPIC_API_KEY;
-  const headers = {
-    "Content-Type": "application/json",
-  };
-
-  if (envApiKey) {
-    headers["x-api-key"] = envApiKey;
-    headers["anthropic-version"] = "2023-06-01";
-  }
-
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1000,
-      system:
-        'You are a helpful, empathetic health assistant for Indian users. Answer clearly and practically. Include: direct answer, key facts, India-friendly home care advice (paracetamol, ORS, jeera water, turmeric milk etc), and clear warning signs. End every response with: "\u2695\uFE0F This is general health information. Please consult a licensed doctor for personal medical advice." Be concise and avoid jargon.',
-      messages,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Claude API request failed with status ${response.status}.`);
-  }
-
-  const data = await response.json();
-  const claudeReply = data?.content?.[0]?.text || "";
-
-  return {
-    response: claudeReply,
-    suggestions: [],
-  };
-}
-
 export default function useChat() {
   const [history, setHistory] = useState(INITIAL_HISTORY);
   const [mode, setMode] = useState("symptom");
@@ -244,7 +208,12 @@ export default function useChat() {
         } else if (lastMatchedTopic) {
           assistantResponse = buildEntryResponse(lastMatchedTopic, trimmedText);
         } else {
-          assistantResponse = await fetchClaudeFallback(apiMessages);
+          assistantResponse = await sendChatMessage(
+            apiMessages,
+            MODES[activeMode].system,
+            activeFile,
+            activeMode
+          );
         }
 
         suggestions = assistantResponse?.suggestions || [];
