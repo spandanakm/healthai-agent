@@ -55,10 +55,11 @@ const clearButtonStyle = {
 export default function App() {
   const {
     history,
-    mode,
+    mode: activeMode,
     loading,
     error,
     attachedFile,
+    currentSuggestions,
     switchMode,
     sendMessage,
     attachFile,
@@ -66,14 +67,14 @@ export default function App() {
     clearError,
   } = useChat();
 
-  const activeHistory = history[mode] ?? [];
-  const quickQuestions = MODES[mode]?.quick ?? [];
+  const activeHistory = history[activeMode] ?? [];
+  const quickQuestions = MODES[activeMode]?.quick ?? [];
   const showQuickButtons = activeHistory.length === 0;
 
   return (
     <div style={appStyle}>
       <Header />
-      <TabBar currentMode={mode} onSwitch={switchMode} />
+      <TabBar currentMode={activeMode} onSwitch={switchMode} />
 
       {error ? (
         <div style={errorBannerStyle}>
@@ -91,23 +92,31 @@ export default function App() {
         </div>
       ) : null}
 
-      <ChatWindow messages={activeHistory} loading={loading} mode={mode} />
+      <ChatWindow
+        messages={activeHistory}
+        loading={loading}
+        mode={activeMode}
+        onSuggestionClick={sendMessage}
+      />
 
       {showQuickButtons ? (
         <QuickButtons
           questions={quickQuestions}
+          suggestions={currentSuggestions}
           loading={loading}
           onSelect={sendMessage}
-          mode={mode}
+          mode={activeMode}
+          style={{ padding: "10px 12px 0" }}
         />
       ) : null}
 
-      {mode === "report" ? (
+      {activeMode === "report" ? (
         <div style={sectionPaddingStyle}>
           <UploadZone
             attachedFile={attachedFile}
             onFile={attachFile}
             onClear={clearFile}
+            mode={activeMode}
           />
         </div>
       ) : null}
@@ -116,7 +125,7 @@ export default function App() {
         For informational purposes only. Always consult a real doctor.
       </div>
 
-      <InputBar onSend={sendMessage} loading={loading} mode={mode} />
+      <InputBar onSend={sendMessage} loading={loading} mode={activeMode} />
     </div>
   );
 }

@@ -94,7 +94,13 @@ function TypingIndicator({ mode }) {
   );
 }
 
-export default function ChatWindow({ messages, loading, mode, welcomeText }) {
+export default function ChatWindow({
+  messages,
+  loading,
+  mode,
+  welcomeText,
+  onSuggestionClick,
+}) {
   const containerRef = useRef(null);
   const bottomRef = useRef(null);
   const palette = TAB_COLORS[mode] ?? TAB_COLORS.symptom;
@@ -176,11 +182,10 @@ export default function ChatWindow({ messages, loading, mode, welcomeText }) {
         messages.map((message, index) => (
           <MessageBubble
             key={message.id ?? `${message.role}-${index}`}
-            role={message.role}
-            content={message.content}
-            fileName={message.fileName ?? message.name}
-            sev={message.sev ?? message.severity}
+            message={message}
             mode={mode}
+            loading={loading}
+            onSuggestionClick={onSuggestionClick}
           />
         ))
       )}

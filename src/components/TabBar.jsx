@@ -42,54 +42,16 @@ export default function TabBar({ currentMode, onSwitch }) {
     },
   ];
 
-  const containerStyle = {
-    background: "#12122a",
-    padding: "10px 14px",
-    display: "flex",
-    gap: "8px",
-  };
-
-  const getTabStyle = (tab, isActive, isHovered) => ({
-    flex: 1,
-    padding: "10px 8px",
-    borderRadius: "14px",
-    border: "1px solid transparent",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "5px",
-    cursor: "pointer",
-    transition: "all 0.25s",
-    color: isActive ? tab.activeColor : "#4a5568",
-    background: isActive
-      ? tab.activeBg
-      : isHovered
-        ? "rgba(255,255,255,0.05)"
-        : "transparent",
-    borderColor: isActive
-      ? tab.activeBorder
-      : isHovered
-        ? "rgba(255,255,255,0.1)"
-        : "transparent",
-  });
-
-  const iconStyle = {
-    fontSize: "20px",
-    lineHeight: 1,
-  };
-
-  const labelStyle = {
-    fontSize: "10px",
-    fontWeight: 500,
-    letterSpacing: "0.3px",
-    lineHeight: 1,
-  };
-
   return (
-    <div style={containerStyle}>
+    <div className="mode-bar">
       {tabs.map((tab) => {
         const isActive = tab.id === currentMode;
         const isHovered = tab.id === hoveredTab;
+        const tabStyle = {
+          "--tab-accent": tab.activeColor,
+          "--tab-border": tab.activeBorder,
+          "--tab-active-bg": tab.activeBg,
+        };
 
         return (
           <div
@@ -98,6 +60,7 @@ export default function TabBar({ currentMode, onSwitch }) {
             tabIndex={0}
             aria-pressed={isActive}
             data-active-class={tab.activeClass}
+            className={`mode-tab${isActive ? " is-active" : ""}${isHovered ? " is-hovered" : ""}`}
             onClick={() => onSwitch?.(tab.id)}
             onMouseEnter={() => setHoveredTab(tab.id)}
             onMouseLeave={() => setHoveredTab(null)}
@@ -107,10 +70,10 @@ export default function TabBar({ currentMode, onSwitch }) {
                 onSwitch?.(tab.id);
               }
             }}
-            style={getTabStyle(tab, isActive, isHovered)}
+            style={tabStyle}
           >
-            <i className={`ti ${tab.icon}`} aria-hidden="true" style={iconStyle} />
-            <span style={labelStyle}>{tab.label}</span>
+            <i className={`ti ${tab.icon} mode-tab__icon`} aria-hidden="true" />
+            <span className="mode-tab__label">{tab.label}</span>
           </div>
         );
       })}

@@ -25,6 +25,39 @@ function readFileAsDataUrl(file) {
   });
 }
 
+function readFileAsArrayBuffer(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("Failed to read file."));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+async function extractPdfText(file) {
+  const pdfjs = await import("pdfjs-dist/legacy/webpack.mjs");
+
+  const buffer = await readFileAsArrayBuffer(file);
+  const pdf = await pdfjs.getDocument({ data: new Uint8Array(buffer) }).promise;
+  const pages = [];
+
+  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+    const page = await pdf.getPage(pageNumber);
+    const textContent = await page.getTextContent();
+    const pageText = textContent.items
+      .map((item) => ("str" in item ? item.str : ""))
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (pageText) {
+      pages.push(pageText);
+    }
+  }
+
+  return pages.join("\n\n");
+}
+
 export default function UploadZone({ attachedFile, onFile, onClear }) {
   const inputRef = useRef(null);
   const dragDepthRef = useRef(0);
@@ -44,10 +77,11 @@ export default function UploadZone({ attachedFile, onFile, onClear }) {
         file.type.startsWith("text/") || /\.(txt|csv|md)$/i.test(file.name);
 
       if (isPdf) {
+        const text = await extractPdfText(file);
         await onFile?.({
           name: file.name,
           size: file.size,
-          data: null,
+          data: text,
           type: "pdf",
         });
         return;

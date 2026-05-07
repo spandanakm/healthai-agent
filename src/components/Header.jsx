@@ -24,8 +24,10 @@ export default function Header() {
           justifyContent: "space-between",
           gap: "16px",
           padding: "14px 20px",
-          background: "#1a1035",
+          background:
+            "linear-gradient(135deg, rgba(18, 24, 49, 0.96), rgba(27, 16, 53, 0.94))",
           borderBottom: "1px solid rgba(255,255,255,0.08)",
+          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.18)",
         }}
       >
         <div
@@ -42,12 +44,12 @@ export default function Header() {
               width: "42px",
               height: "42px",
               borderRadius: "14px",
-              background: "linear-gradient(135deg, #6C63FF, #EC4899)",
+              background: "linear-gradient(135deg, #5B8CFF, #EC4899)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
-              boxShadow: "0 10px 24px rgba(108, 99, 255, 0.28)",
+              boxShadow: "0 12px 30px rgba(91, 140, 255, 0.3)",
             }}
           >
             <svg
@@ -83,19 +85,20 @@ export default function Header() {
           >
             <div
               style={{
-                fontSize: "16px",
-                fontWeight: 500,
+                fontSize: "18px",
+                fontWeight: 700,
                 lineHeight: 1.2,
                 color: "#fff",
+                letterSpacing: "0.02em",
               }}
             >
               HealthAI Agent
             </div>
             <div
               style={{
-                fontSize: "10px",
+                fontSize: "11px",
                 lineHeight: 1.3,
-                color: "#8b9dc3",
+                color: "#9cb0d8",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -111,11 +114,12 @@ export default function Header() {
             display: "inline-flex",
             alignItems: "center",
             gap: "8px",
-            padding: "5px 12px",
+            padding: "7px 14px",
             borderRadius: "20px",
-            background: "#10B98115",
+            background: "linear-gradient(135deg, #10B98118, #22D3EE10)",
             border: "1px solid #10B98140",
             flexShrink: 0,
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
           }}
         >
           <span
@@ -131,9 +135,10 @@ export default function Header() {
           <span
             style={{
               color: "#34D399",
-              fontSize: "11px",
-              fontWeight: 500,
+              fontSize: "12px",
+              fontWeight: 700,
               lineHeight: 1,
+              letterSpacing: "0.04em",
             }}
           >
             Live

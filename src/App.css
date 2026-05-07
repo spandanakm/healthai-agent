@@ -3,12 +3,12 @@
   --q: #f59e0b;
   --m: #ec4899;
   --r: #10b981;
-  --bg: #0f0f1a;
-  --surface: #1e1e35;
-  --surface-2: #12122a;
+  --bg: #090b16;
+  --surface: #131b2f;
+  --surface-2: #0d1324;
   --border: rgba(255, 255, 255, 0.08);
-  --text: #e2e8f0;
-  --muted: #94a3b8;
+  --text: #edf3ff;
+  --muted: #9fb1d1;
   --font-sans: "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
   --shadow-lg: 0 24px 80px rgba(0, 0, 0, 0.36);
   --shadow-md: 0 18px 40px rgba(0, 0, 0, 0.24);
@@ -36,8 +36,9 @@ html {
 
 body {
   background:
-    radial-gradient(circle at top, rgba(108, 99, 255, 0.2), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.1), transparent 24%),
+    radial-gradient(circle at top, rgba(255, 119, 198, 0.18), transparent 26%),
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.18), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.14), transparent 22%),
     var(--bg);
   color: var(--text);
 }
@@ -103,11 +104,106 @@ textarea {
   margin: 0 auto;
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 120px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 120px),
+    radial-gradient(circle at top left, rgba(236, 72, 153, 0.08), transparent 28%),
     var(--surface);
   border-left: 1px solid var(--border);
   border-right: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
+}
+
+.mode-bar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px 16px 10px;
+  background:
+    linear-gradient(180deg, rgba(10, 16, 34, 0.94), rgba(12, 18, 34, 0.9)),
+    rgba(13, 19, 36, 0.92);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px);
+}
+
+.mode-tab {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 84px;
+  padding: 16px 10px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015)),
+    rgba(255, 255, 255, 0.015);
+  color: #7f93b8;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.mode-tab::before {
+  content: "";
+  position: absolute;
+  inset: -40% auto auto -10%;
+  width: 70%;
+  height: 120%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), transparent 55%);
+  opacity: 0;
+  transform: rotate(14deg);
+  transition: opacity 0.28s ease;
+  pointer-events: none;
+}
+
+.mode-tab:hover,
+.mode-tab.is-hovered {
+  transform: translateY(-3px) scale(1.01);
+  color: #dbeafe;
+  border-color: rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.025);
+  box-shadow: 0 18px 28px rgba(0, 0, 0, 0.2);
+}
+
+.mode-tab:hover::before,
+.mode-tab.is-hovered::before,
+.mode-tab.is-active::before {
+  opacity: 1;
+}
+
+.mode-tab:focus-visible {
+  outline: none;
+  border-color: var(--tab-accent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--tab-accent) 24%, transparent),
+    0 18px 28px rgba(0, 0, 0, 0.22);
+}
+
+.mode-tab.is-active {
+  color: var(--tab-accent);
+  border-color: var(--tab-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 70%),
+    var(--tab-active-bg),
+    rgba(255, 255, 255, 0.03);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 18px 36px rgba(0, 0, 0, 0.24);
+}
+
+.mode-tab__icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.mode-tab__label {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
 }
 
 .app-header {
@@ -613,14 +709,25 @@ textarea {
     padding-right: 10px;
   }
 
-  .tab-bar {
-    gap: 6px;
-    padding-left: 8px;
-    padding-right: 8px;
+  .mode-bar {
+    gap: 8px;
+    padding: 12px 10px 8px;
   }
 
-  .tab {
-    padding: 10px 6px 9px;
+  .mode-tab {
+    min-height: 76px;
+    gap: 8px;
+    padding: 14px 6px;
+    border-radius: 18px;
+  }
+
+  .mode-tab__icon {
+    font-size: 20px;
+  }
+
+  .mode-tab__label {
+    font-size: 12px;
+    letter-spacing: 0.06em;
   }
 
   .message-bubble {

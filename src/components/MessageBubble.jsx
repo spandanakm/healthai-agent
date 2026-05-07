@@ -156,12 +156,18 @@ function renderAssistantLine(line, index, palette) {
 }
 
 export default function MessageBubble({
-  role,
-  content,
-  fileName,
-  sev,
+  message,
   mode,
+  onSuggestionClick,
+  loading = false,
 }) {
+  const role = message?.role;
+  const content = message?.content;
+  const fileName = message?.fileName ?? message?.name;
+  const sev = message?.sev ?? message?.severity;
+  const suggestions = Array.isArray(message?.suggestions)
+    ? message.suggestions
+    : [];
   const palette = TAB_COLORS[mode] ?? TAB_COLORS.symptom;
   const severityStyle = sev ? SEVERITY_STYLES[sev] : null;
   const rowStyle = {
@@ -334,39 +340,77 @@ export default function MessageBubble({
 
         <div
           style={{
-            background: "#1e1e35",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: "4px 18px 18px 18px",
-            color: "#e2e8f0",
-            padding: "10px 12px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
             maxWidth: "320px",
           }}
         >
-          {severityStyle ? (
+          <div
+            style={{
+              background: "#1e1e35",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "4px 18px 18px 18px",
+              color: "#e2e8f0",
+              padding: "10px 12px",
+            }}
+          >
+            {severityStyle ? (
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  fontSize: "10px",
+                  padding: "3px 10px",
+                  borderRadius: "20px",
+                  border: `1px solid ${severityStyle.borderColor}`,
+                  color: severityStyle.color,
+                  background: severityStyle.background,
+                  marginBottom: "8px",
+                }}
+              >
+                <i className="ti ti-activity" aria-hidden="true" />
+                <span>{sev}</span>
+              </div>
+            ) : null}
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+              {String(content || "")
+                .split("\n")
+                .map((line, index) => renderAssistantLine(line, index, palette))}
+            </div>
+          </div>
+          {suggestions.length > 0 ? (
             <div
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "5px",
-                fontSize: "10px",
-                padding: "3px 10px",
-                borderRadius: "20px",
-                border: `1px solid ${severityStyle.borderColor}`,
-                color: severityStyle.color,
-                background: severityStyle.background,
-                marginBottom: "8px",
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px",
               }}
             >
-              <i className="ti ti-activity" aria-hidden="true" />
-              <span>{sev}</span>
+              {suggestions.map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => onSuggestionClick?.(chip)}
+                  disabled={loading}
+                  style={{
+                    fontSize: "11px",
+                    padding: "6px 12px",
+                    borderRadius: "20px",
+                    border: `1px solid ${palette.accent}`,
+                    color: palette.accent,
+                    background: "transparent",
+                    cursor: loading ? "not-allowed" : "pointer",
+                    opacity: loading ? 0.6 : 1,
+                  }}
+                >
+                  {chip}
+                </button>
+              ))}
             </div>
           ) : null}
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-            {String(content || "")
-              .split("\n")
-              .map((line, index) => renderAssistantLine(line, index, palette))}
-          </div>
         </div>
       </div>
     </>
