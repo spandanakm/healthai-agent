@@ -23,74 +23,25 @@ const TAB_COLORS = {
 
 function TypingIndicator({ mode }) {
   const palette = TAB_COLORS[mode] ?? TAB_COLORS.symptom;
-  const dotStyle = {
-    width: "7px",
-    height: "7px",
-    borderRadius: "999px",
-    background: palette.accent,
-    animation: "tdot 0.9s infinite",
-  };
 
   return (
-    <>
-      <style>
-        {`
-          @keyframes tdot {
-            0%, 80%, 100% {
-              transform: translateY(0);
-              opacity: 0.45;
-            }
-            40% {
-              transform: translateY(-4px);
-              opacity: 1;
-            }
-          }
-        `}
-      </style>
+    <div className="message-row assistant">
       <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "flex-end",
-          gap: "8px",
-        }}
+        aria-hidden="true"
+        className="message-avatar assistant"
+        style={{ color: palette.accent }}
       >
-        <div
-          aria-hidden="true"
-          style={{
-            width: "32px",
-            height: "32px",
-            borderRadius: "12px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-            background: "#1e1e35",
-            border: `1px solid ${palette.accent}40`,
-            color: palette.accent,
-            fontSize: "16px",
-          }}
-        >
-          <i className="ti ti-robot" />
-        </div>
+        <i className="ti ti-robot" />
+      </div>
 
-        <div
-          style={{
-            background: "#1e1e35",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: "4px 18px 18px 18px",
-            padding: "13px 16px",
-            display: "flex",
-            alignItems: "center",
-            gap: "7px",
-          }}
-        >
-          <span style={{ ...dotStyle, animationDelay: "0ms" }} />
-          <span style={{ ...dotStyle, animationDelay: "150ms" }} />
-          <span style={{ ...dotStyle, animationDelay: "300ms" }} />
+      <div className="typing-bubble">
+        <div className="typing-dots">
+          <span style={{ background: palette.accent }} />
+          <span style={{ background: palette.accent }} />
+          <span style={{ background: palette.accent }} />
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -113,69 +64,23 @@ export default function ChatWindow({
   }, [messages, loading]);
 
   return (
-    <div
-      ref={containerRef}
-      className="chat"
-      style={{
-        flex: 1,
-        overflowY: "auto",
-        padding: "16px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "10px",
-        background: "#0f0f1a",
-      }}
-    >
+    <div ref={containerRef} className="chat-window">
       {showEmptyState ? (
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "12px",
-          }}
-        >
-          <div
-            aria-hidden="true"
-            style={{
-              width: "80px",
-              height: "80px",
-              borderRadius: "28px",
-              background: palette.gradient,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 18px 40px rgba(0,0,0,0.28)",
-            }}
-          >
-            <i
-              className="ti ti-sparkles"
-              style={{ fontSize: "30px", color: "#ffffff" }}
-            />
-          </div>
+        <div className="chat-empty">
+          <div className="chat-empty__card">
+            <div
+              aria-hidden="true"
+              className="chat-empty__icon"
+              style={{ background: palette.gradient }}
+            >
+              <i
+                className="ti ti-sparkles"
+                style={{ fontSize: "30px", color: "#ffffff" }}
+              />
+            </div>
 
-          <div
-            style={{
-              fontSize: "15px",
-              fontWeight: 500,
-              color: "#e2e8f0",
-            }}
-          >
-            Ask me anything
-          </div>
-
-          <div
-            style={{
-              fontSize: "12px",
-              color: "#cbd5e1",
-              maxWidth: "230px",
-              lineHeight: 1.6,
-              textAlign: "center",
-            }}
-          >
-            {resolvedWelcomeText}
+            <div className="chat-empty__title">Start with a simple question</div>
+            <div className="chat-empty__text">{resolvedWelcomeText}</div>
           </div>
         </div>
       ) : (

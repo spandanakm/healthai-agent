@@ -152,43 +152,14 @@ export default function UploadZone({ attachedFile, onFile, onClear }) {
 
   if (attachedFile) {
     return (
-      <div
-        style={{
-          margin: "0 16px 10px",
-          background: "#0d2018",
-          border: "1px solid #10B98160",
-          borderRadius: "12px",
-          padding: "9px 14px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "12px",
-        }}
-      >
-        <div
-          style={{
-            minWidth: 0,
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            color: "#34D399",
-            fontSize: "12px",
-            fontWeight: 500,
-          }}
-        >
+      <div className="attached-file">
+        <div className="attached-file__meta">
           <i
             className="ti ti-file-check"
             aria-hidden="true"
             style={{ fontSize: "18px", color: "#34D399", flexShrink: 0 }}
           />
-          <span
-            style={{
-              minWidth: 0,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
+          <span className="attached-file__name">
             {attachedFile.name} ({formatFileSize(attachedFile.size)})
           </span>
         </div>
@@ -197,16 +168,7 @@ export default function UploadZone({ attachedFile, onFile, onClear }) {
           type="button"
           onClick={onClear}
           aria-label="Clear attached file"
-          style={{
-            background: "none",
-            border: "none",
-            color: "#64748b",
-            cursor: "pointer",
-            fontSize: "16px",
-            lineHeight: 1,
-            padding: 0,
-            flexShrink: 0,
-          }}
+          className="attached-file__clear"
         >
           {"\u00D7"}
         </button>
@@ -242,46 +204,22 @@ export default function UploadZone({ attachedFile, onFile, onClear }) {
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        style={{
-          margin: "0 16px 10px",
-          border: `2px ${isDragging ? "solid" : "dashed"} ${isActive ? "#10B981" : "#10B98180"}`,
-          borderRadius: "16px",
-          padding: "14px",
-          textAlign: "center",
-          cursor: "pointer",
-          background: isActive ? "#0d2018" : "#1a2535",
-          transition: "background 160ms ease, border-color 160ms ease",
-        }}
+        className={`upload-zone${isActive ? " is-active" : ""}`}
+        style={{ borderStyle: isDragging ? "solid" : "dashed" }}
       >
-        <i
-          className="ti ti-cloud-upload"
-          aria-hidden="true"
-          style={{
-            display: "block",
-            fontSize: "26px",
-            color: "#34D399",
-            lineHeight: 1,
-            marginBottom: "8px",
-          }}
-        />
-        <div
-          style={{
-            fontSize: "12px",
-            fontWeight: 500,
-            color: "#34D399",
-            marginBottom: "4px",
-          }}
-        >
-          Upload Medical Report
+        <div className="upload-zone__lead">
+          <div className="upload-zone__icon">
+            <i className="ti ti-cloud-upload" aria-hidden="true" />
+          </div>
+          <div>
+            <div className="upload-zone__title">Upload Medical Report</div>
+            <div className="upload-zone__meta">
+              TXT, CSV, MD, PDF files supported. Drag and drop or tap to browse.
+            </div>
+          </div>
         </div>
-        <div
-          style={{
-            fontSize: "10px",
-            color: "#64748b",
-          }}
-        >
-          TXT, CSV, MD, PDF — drag or click to upload
-        </div>
+
+        <div className="upload-zone__cta">Choose file</div>
       </div>
     </>
   );

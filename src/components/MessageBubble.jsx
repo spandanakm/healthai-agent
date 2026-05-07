@@ -1,63 +1,61 @@
-const POP_ANIMATION_NAME = "messageBubblePop";
-
 const TAB_COLORS = {
   symptom: {
     accent: "#a78bfa",
     secBg: "#2d1f5e",
-    secTxt: "#c4b5fd",
+    secTxt: "#ddd6fe",
     warnBg: "#2d2010",
-    warnC: "#fbbf24",
-    warnBorder: "#F59E0B",
+    warnC: "#fcd34d",
+    warnBorder: "#f59e0b",
     dotC: "#a78bfa",
     gradient: "linear-gradient(135deg,#6C63FF,#8B5CF6)",
   },
   qa: {
     accent: "#fbbf24",
     secBg: "#2d2010",
-    secTxt: "#fcd34d",
+    secTxt: "#fde68a",
     warnBg: "#2d1515",
-    warnC: "#fca5a5",
-    warnBorder: "#EF4444",
+    warnC: "#fecaca",
+    warnBorder: "#ef4444",
     dotC: "#fbbf24",
     gradient: "linear-gradient(135deg,#F59E0B,#EF4444)",
   },
   mental: {
     accent: "#f472b6",
-    secBg: "#2d1030",
-    secTxt: "#f9a8d4",
+    secBg: "#341127",
+    secTxt: "#fbcfe8",
     warnBg: "#2d1020",
     warnC: "#fda4af",
-    warnBorder: "#EC4899",
+    warnBorder: "#ec4899",
     dotC: "#f472b6",
     gradient: "linear-gradient(135deg,#EC4899,#F97316)",
   },
   report: {
-    accent: "#34D399",
-    secBg: "#0d2030",
-    secTxt: "#6ee7b7",
-    warnBg: "#0d2030",
-    warnC: "#67e8f9",
-    warnBorder: "#06B6D4",
-    dotC: "#34D399",
+    accent: "#34d399",
+    secBg: "#10312d",
+    secTxt: "#bbf7d0",
+    warnBg: "#112b33",
+    warnC: "#a5f3fc",
+    warnBorder: "#06b6d4",
+    dotC: "#34d399",
     gradient: "linear-gradient(135deg,#10B981,#06B6D4)",
   },
 };
 
 const SEVERITY_STYLES = {
   Serious: {
-    color: "#EF4444",
-    background: "#2d1010",
-    borderColor: "#EF4444",
+    color: "#fecaca",
+    background: "#391416",
+    borderColor: "#ef4444",
   },
   Moderate: {
-    color: "#F59E0B",
-    background: "#2d2010",
-    borderColor: "#F59E0B",
+    color: "#fde68a",
+    background: "#34250d",
+    borderColor: "#f59e0b",
   },
   Mild: {
-    color: "#10B981",
-    background: "#0d2018",
-    borderColor: "#10B981",
+    color: "#bbf7d0",
+    background: "#102b1d",
+    borderColor: "#10b981",
   },
 };
 
@@ -65,94 +63,119 @@ function isEmojiHeader(line) {
   return /^(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})\s/u.test(line);
 }
 
-function renderAssistantLine(line, index, palette) {
-  const trimmedLine = line.trim();
+function parseKeyValueLine(line) {
+  const trimmed = line.trim();
 
-  if (!trimmedLine) {
-    return <div key={`space-${index}`} style={{ height: "4px" }} />;
+  if (!trimmed.startsWith("|") || !trimmed.endsWith("|")) {
+    return null;
   }
 
-  if (trimmedLine.startsWith("- ") || trimmedLine.startsWith("\u2022 ")) {
-    return (
-      <div
-        key={`bullet-${index}`}
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          gap: "8px",
-          margin: "0 0 4px",
-        }}
-      >
-        <span
-          aria-hidden="true"
-          style={{
-            width: "7px",
-            height: "7px",
-            borderRadius: "999px",
-            background: palette.dotC,
-            flexShrink: 0,
-            marginTop: "6px",
-            boxShadow: `0 0 0 3px ${palette.accent}20`,
-          }}
-        />
-        <div style={{ color: "#cbd5e1", fontSize: "13px", lineHeight: 1.6 }}>
-          {trimmedLine.slice(2).trim()}
-        </div>
-      </div>
+  const parts = trimmed
+    .split("|")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length !== 2) {
+    return null;
+  }
+
+  return { key: parts[0], value: parts[1] };
+}
+
+function renderAssistantLines(content, palette) {
+  const lines = String(content || "").split("\n");
+  const blocks = [];
+  let keyValueBuffer = [];
+
+  const flushKeyValues = () => {
+    if (keyValueBuffer.length === 0) {
+      return;
+    }
+
+    blocks.push(
+      <div key={`kv-${blocks.length}`} className="message-kv-list">
+        {keyValueBuffer.map((item, index) => (
+          <div key={`${item.key}-${index}`} className="message-kv-row">
+            <div className="message-kv-key">{item.key}</div>
+            <div className="message-kv-value">{item.value}</div>
+          </div>
+        ))}
+      </div>,
     );
-  }
+    keyValueBuffer = [];
+  };
 
-  if (isEmojiHeader(trimmedLine)) {
-    return (
-      <div key={`header-${index}`} style={{ margin: "4px 0" }}>
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+    const keyValue = parseKeyValueLine(trimmed);
+
+    if (keyValue) {
+      keyValueBuffer.push(keyValue);
+      return;
+    }
+
+    flushKeyValues();
+
+    if (!trimmed) {
+      blocks.push(<div key={`space-${index}`} style={{ height: "4px" }} />);
+      return;
+    }
+
+    if (trimmed.startsWith("- ") || trimmed.startsWith("\u2022 ")) {
+      blocks.push(
+        <div key={`bullet-${index}`} className="message-bullet">
+          <span
+            className="message-bullet__dot"
+            style={{
+              background: palette.dotC,
+              boxShadow: `0 0 0 3px ${palette.accent}22`,
+            }}
+          />
+          <div className="message-paragraph">{trimmed.slice(2).trim()}</div>
+        </div>,
+      );
+      return;
+    }
+
+    if (isEmojiHeader(trimmed)) {
+      blocks.push(
+        <div key={`header-${index}`} className="message-tag" style={{ background: palette.secBg, color: palette.secTxt }}>
+          {trimmed}
+        </div>,
+      );
+      return;
+    }
+
+    if (
+      trimmed.includes("\u26A0\uFE0F") ||
+      trimmed.toLowerCase().includes("always consult")
+    ) {
+      blocks.push(
         <div
+          key={`warning-${index}`}
+          className="message-warning"
           style={{
-            display: "inline-block",
-            background: palette.secBg,
-            color: palette.secTxt,
-            fontSize: "11px",
-            lineHeight: 1.4,
-            padding: "3px 10px",
-            borderRadius: "6px",
+            background: palette.warnBg,
+            color: palette.warnC,
+            borderLeft: `3px solid ${palette.warnBorder}`,
           }}
         >
-          {trimmedLine}
-        </div>
-      </div>
-    );
-  }
+          {trimmed}
+        </div>,
+      );
+      return;
+    }
 
-  if (
-    trimmedLine.includes("\u26A0\uFE0F") ||
-    trimmedLine.toLowerCase().includes("always consult")
-  ) {
-    return (
-      <div
-        key={`warning-${index}`}
-        style={{
-          background: palette.warnBg,
-          color: palette.warnC,
-          borderLeft: `3px solid ${palette.warnBorder}`,
-          padding: "6px 10px",
-          borderRadius: "8px",
-          fontSize: "11px",
-          lineHeight: 1.55,
-          margin: "2px 0",
-        }}
-      >
-        {trimmedLine}
-      </div>
+    blocks.push(
+      <div key={`text-${index}`} className="message-paragraph">
+        {trimmed}
+      </div>,
     );
-  }
+  });
 
-  return (
-    <div
-      key={`text-${index}`}
-      style={{ color: "#cbd5e1", fontSize: "13px", lineHeight: 1.6 }}
-    >
-      {trimmedLine}
-    </div>
-  );
+  flushKeyValues();
+
+  return blocks;
 }
 
 export default function MessageBubble({
@@ -170,249 +193,101 @@ export default function MessageBubble({
     : [];
   const palette = TAB_COLORS[mode] ?? TAB_COLORS.symptom;
   const severityStyle = sev ? SEVERITY_STYLES[sev] : null;
-  const rowStyle = {
-    display: "flex",
-    flexDirection: role === "user" ? "row-reverse" : "row",
-    justifyContent: role === "user" ? "flex-start" : "flex-start",
-    alignItems: "flex-end",
-    gap: "8px",
-    animation: `${POP_ANIMATION_NAME} 0.22s cubic-bezier(0.34,1.56,0.64,1)`,
-  };
 
   if (role === "file") {
     return (
-      <>
-        <style>
-          {`
-            @keyframes ${POP_ANIMATION_NAME} {
-              from {
-                opacity: 0;
-                transform: scale(0.96) translateY(8px);
-              }
-              to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-              }
-            }
-          `}
-        </style>
-        <div style={rowStyle}>
-          <div
-            aria-hidden="true"
-            style={{
-              width: "32px",
-              height: "32px",
-              borderRadius: "12px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-              background: "#1e1e35",
-              border: `1px solid ${palette.accent}40`,
-              color: palette.accent,
-              fontSize: "16px",
-            }}
-          >
-            <i className="ti ti-robot" />
-          </div>
+      <div className="message-row file">
+        <div
+          aria-hidden="true"
+          className="message-avatar file"
+          style={{ color: palette.accent }}
+        >
+          <i className="ti ti-file-check" />
+        </div>
 
-          <div
-            style={{
-              background: "#1e1e35",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: "4px 18px 18px 18px",
-              color: "#e2e8f0",
-              padding: "10px 12px",
-              maxWidth: "320px",
-            }}
-          >
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                color: palette.accent,
-                fontSize: "13px",
-                fontWeight: 600,
-                lineHeight: 1.5,
-              }}
-            >
-              <i className="ti ti-file-check" aria-hidden="true" />
-              <span>{fileName || ""}</span>
+        <div className="message-stack">
+          <div className="message-bubble file">
+            <div className="message-tag" style={{ background: palette.secBg, color: palette.secTxt }}>
+              Report attached
+            </div>
+            <div className="message-body">
+              <div className="message-paragraph">{fileName || ""}</div>
             </div>
           </div>
         </div>
-      </>
+      </div>
     );
   }
 
   if (role === "user") {
     return (
-      <>
-        <style>
-          {`
-            @keyframes ${POP_ANIMATION_NAME} {
-              from {
-                opacity: 0;
-                transform: scale(0.96) translateY(8px);
-              }
-              to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-              }
-            }
-          `}
-        </style>
-        <div style={rowStyle}>
-          <div
-            aria-hidden="true"
-            style={{
-              width: "32px",
-              height: "32px",
-              borderRadius: "12px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-              background: palette.gradient,
-              color: "#ffffff",
-              fontSize: "16px",
-            }}
-          >
-            <i className="ti ti-user" />
-          </div>
+      <div className="message-row user">
+        <div
+          aria-hidden="true"
+          className="message-avatar user"
+          style={{ background: palette.gradient, color: "#ffffff" }}
+        >
+          <i className="ti ti-user" />
+        </div>
 
+        <div className="message-stack">
           <div
-            style={{
-              background: palette.gradient,
-              color: "#ffffff",
-              padding: "10px 12px",
-              borderRadius: "18px 4px 18px 18px",
-              maxWidth: "320px",
-              fontSize: "13px",
-              lineHeight: 1.6,
-              whiteSpace: "pre-wrap",
-              boxShadow: "0 10px 24px rgba(0,0,0,0.22)",
-            }}
+            className="message-bubble user"
+            style={{ background: palette.gradient, borderColor: `${palette.accent}55` }}
           >
             {content}
           </div>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <style>
-        {`
-          @keyframes ${POP_ANIMATION_NAME} {
-            from {
-              opacity: 0;
-              transform: scale(0.96) translateY(8px);
-            }
-            to {
-              opacity: 1;
-              transform: scale(1) translateY(0);
-            }
-          }
-        `}
-      </style>
-      <div style={rowStyle}>
-        <div
-          aria-hidden="true"
-          style={{
-            width: "32px",
-            height: "32px",
-            borderRadius: "12px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-            background: "#1e1e35",
-            border: `1px solid ${palette.accent}40`,
-            color: palette.accent,
-            fontSize: "16px",
-          }}
-        >
-          <i className="ti ti-robot" />
-        </div>
+    <div className="message-row assistant">
+      <div
+        aria-hidden="true"
+        className="message-avatar assistant"
+        style={{ color: palette.accent }}
+      >
+        <i className="ti ti-robot" />
+      </div>
 
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "8px",
-            maxWidth: "320px",
-          }}
-        >
-          <div
-            style={{
-              background: "#1e1e35",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: "4px 18px 18px 18px",
-              color: "#e2e8f0",
-              padding: "10px 12px",
-            }}
-          >
-            {severityStyle ? (
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "5px",
-                  fontSize: "10px",
-                  padding: "3px 10px",
-                  borderRadius: "20px",
-                  border: `1px solid ${severityStyle.borderColor}`,
-                  color: severityStyle.color,
-                  background: severityStyle.background,
-                  marginBottom: "8px",
-                }}
-              >
-                <i className="ti ti-activity" aria-hidden="true" />
-                <span>{sev}</span>
-              </div>
-            ) : null}
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-              {String(content || "")
-                .split("\n")
-                .map((line, index) => renderAssistantLine(line, index, palette))}
-            </div>
-          </div>
-          {suggestions.length > 0 ? (
+      <div className="message-stack">
+        <div className="message-bubble assistant">
+          {severityStyle ? (
             <div
+              className="message-severity"
               style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "8px",
+                color: severityStyle.color,
+                background: severityStyle.background,
+                border: `1px solid ${severityStyle.borderColor}`,
               }}
             >
-              {suggestions.map((chip) => (
-                <button
-                  key={chip}
-                  type="button"
-                  onClick={() => onSuggestionClick?.(chip)}
-                  disabled={loading}
-                  style={{
-                    fontSize: "11px",
-                    padding: "6px 12px",
-                    borderRadius: "20px",
-                    border: `1px solid ${palette.accent}`,
-                    color: palette.accent,
-                    background: "transparent",
-                    cursor: loading ? "not-allowed" : "pointer",
-                    opacity: loading ? 0.6 : 1,
-                  }}
-                >
-                  {chip}
-                </button>
-              ))}
+              <i className="ti ti-activity" aria-hidden="true" />
+              <span>{sev}</span>
             </div>
           ) : null}
+
+          <div className="message-body">{renderAssistantLines(content, palette)}</div>
         </div>
+
+        {suggestions.length > 0 ? (
+          <div className="suggestion-row">
+            {suggestions.map((chip) => (
+              <button
+                key={chip}
+                type="button"
+                onClick={() => onSuggestionClick?.(chip)}
+                disabled={loading}
+                className="suggestion-chip"
+                style={{ "--chip-accent": palette.accent, color: palette.accent }}
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
-    </>
+    </div>
   );
 }

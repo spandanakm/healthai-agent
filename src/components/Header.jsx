@@ -1,57 +1,9 @@
 export default function Header() {
   return (
     <>
-      <style>
-        {`
-          @keyframes livepulse {
-            0%,
-            100% {
-              transform: scale(1);
-              opacity: 1;
-            }
-            50% {
-              transform: scale(1.35);
-              opacity: 0.55;
-            }
-          }
-        `}
-      </style>
-
-      <header
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "16px",
-          padding: "14px 20px",
-          background:
-            "linear-gradient(135deg, rgba(18, 24, 49, 0.96), rgba(27, 16, 53, 0.94))",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
-          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.18)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            minWidth: 0,
-          }}
-        >
-          <div
-            aria-hidden="true"
-            style={{
-              width: "42px",
-              height: "42px",
-              borderRadius: "14px",
-              background: "linear-gradient(135deg, #5B8CFF, #EC4899)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-              boxShadow: "0 12px 30px rgba(91, 140, 255, 0.3)",
-            }}
-          >
+      <header className="app-header">
+        <div className="app-header__meta">
+          <div aria-hidden="true" className="app-header__icon">
             <svg
               width="22"
               height="22"
@@ -75,75 +27,15 @@ export default function Header() {
             </svg>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "3px",
-              minWidth: 0,
-            }}
-          >
-            <div
-              style={{
-                fontSize: "18px",
-                fontWeight: 700,
-                lineHeight: 1.2,
-                color: "#fff",
-                letterSpacing: "0.02em",
-              }}
-            >
-              HealthAI Agent
-            </div>
-            <div
-              style={{
-                fontSize: "11px",
-                lineHeight: 1.3,
-                color: "#9cb0d8",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
+          <div>
+            <div className="app-header__title">HealthAI Agent</div>
+            <div className="app-header__subtitle">
               {"Symptom checker \u00B7 Medical Q&A \u00B7 Mental health \u00B7 Reports"}
             </div>
           </div>
         </div>
 
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "7px 14px",
-            borderRadius: "20px",
-            background: "linear-gradient(135deg, #10B98118, #22D3EE10)",
-            border: "1px solid #10B98140",
-            flexShrink: 0,
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
-          }}
-        >
-          <span
-            aria-hidden="true"
-            style={{
-              width: "7px",
-              height: "7px",
-              borderRadius: "999px",
-              background: "#10B981",
-              animation: "livepulse 1.5s infinite",
-            }}
-          />
-          <span
-            style={{
-              color: "#34D399",
-              fontSize: "12px",
-              fontWeight: 700,
-              lineHeight: 1,
-              letterSpacing: "0.04em",
-            }}
-          >
-            Live
-          </span>
-        </div>
+        <div className="status-pill">Live</div>
       </header>
     </>
   );

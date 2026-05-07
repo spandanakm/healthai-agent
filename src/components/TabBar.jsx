@@ -7,6 +7,7 @@ export default function TabBar({ currentMode, onSwitch }) {
     {
       id: "symptom",
       label: "SYMPTOMS",
+      hint: "Check symptoms, severity, and smart next steps.",
       icon: "ti-stethoscope",
       activeClass: "s",
       activeBg: "linear-gradient(135deg,#6C63FF25,#8B5CF625)",
@@ -16,6 +17,7 @@ export default function TabBar({ currentMode, onSwitch }) {
     {
       id: "qa",
       label: "MED Q&A",
+      hint: "Get plain-language answers to common health questions.",
       icon: "ti-pill",
       activeClass: "q",
       activeBg: "linear-gradient(135deg,#F59E0B25,#EF444425)",
@@ -25,6 +27,7 @@ export default function TabBar({ currentMode, onSwitch }) {
     {
       id: "mental",
       label: "MENTAL",
+      hint: "Use calming support tools and gentle guidance.",
       icon: "ti-heart",
       activeClass: "m",
       activeBg: "linear-gradient(135deg,#EC489925,#F9731625)",
@@ -34,6 +37,7 @@ export default function TabBar({ currentMode, onSwitch }) {
     {
       id: "report",
       label: "REPORT",
+      hint: "Upload reports and turn complex results into clear notes.",
       icon: "ti-file-analytics",
       activeClass: "r",
       activeBg: "linear-gradient(135deg,#10B98125,#06B6D425)",
@@ -73,7 +77,10 @@ export default function TabBar({ currentMode, onSwitch }) {
             style={tabStyle}
           >
             <i className={`ti ${tab.icon} mode-tab__icon`} aria-hidden="true" />
-            <span className="mode-tab__label">{tab.label}</span>
+            <div className="mode-tab__copy">
+              <span className="mode-tab__label">{tab.label}</span>
+              <span className="mode-tab__hint">{tab.hint}</span>
+            </div>
           </div>
         );
       })}

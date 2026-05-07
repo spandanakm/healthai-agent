@@ -14,18 +14,8 @@ const accentMap = {
   report: "#10B981",
 };
 
-const containerStyle = {
-  background: "#12122a",
-  padding: "10px 14px",
-  display: "flex",
-  alignItems: "flex-end",
-  gap: "8px",
-  borderTop: "1px solid rgba(255,255,255,0.08)",
-};
-
 export default function InputBar({ onSend, loading = false, mode = "symptom" }) {
   const [inputText, setInputText] = useState("");
-  const [isFocused, setIsFocused] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const textareaRef = useRef(null);
   const accentColor = accentMap[mode] ?? accentMap.symptom;
@@ -36,8 +26,8 @@ export default function InputBar({ onSend, loading = false, mode = "symptom" }) 
       return;
     }
 
-    element.style.height = "38px";
-    element.style.height = `${Math.min(element.scrollHeight, 80)}px`;
+    element.style.height = "58px";
+    element.style.height = `${Math.min(element.scrollHeight, 160)}px`;
   };
 
   const handleSend = async () => {
@@ -50,22 +40,21 @@ export default function InputBar({ onSend, loading = false, mode = "symptom" }) 
     await onSend?.(trimmed);
     setInputText("");
     if (textareaRef.current) {
-      textareaRef.current.style.height = "38px";
+      textareaRef.current.style.height = "58px";
     }
   };
 
   return (
     <form
+      className="input-bar"
       onSubmit={(event) => {
         event.preventDefault();
         handleSend();
       }}
-      style={containerStyle}
     >
-      <style>{`.input-bar-textarea::placeholder{color:#4a5568;}`}</style>
       <textarea
         ref={textareaRef}
-        className="input-bar-textarea"
+        className="input-bar__field"
         value={inputText}
         placeholder="Type your message..."
         disabled={loading}
@@ -75,8 +64,6 @@ export default function InputBar({ onSend, loading = false, mode = "symptom" }) 
           autoResize(event.target);
         }}
         onInput={(event) => autoResize(event.currentTarget)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
         onKeyDown={(event) => {
           if (
             event.key === "Enter" &&
@@ -88,23 +75,9 @@ export default function InputBar({ onSend, loading = false, mode = "symptom" }) 
           }
         }}
         style={{
-          flex: 1,
-          background: "#1e1e35",
-          border: `1.5px solid ${
-            isFocused ? `${accentColor}80` : "rgba(255,255,255,0.1)"
-          }`,
-          borderRadius: "14px",
-          padding: "9px 14px",
-          fontSize: "13px",
-          resize: "none",
-          minHeight: "38px",
-          maxHeight: "80px",
-          color: "#e2e8f0",
-          outline: "none",
-          overflowY: "auto",
-          lineHeight: 1.45,
+          "--input-accent": accentColor,
+          "--input-border": `${accentColor}40`,
           cursor: loading ? "not-allowed" : "text",
-          boxSizing: "border-box",
         }}
       />
 
@@ -112,20 +85,10 @@ export default function InputBar({ onSend, loading = false, mode = "symptom" }) 
         type="submit"
         disabled={loading}
         aria-label="Send message"
+        className="send-button"
         style={{
-          width: "40px",
-          height: "40px",
-          borderRadius: "14px",
-          border: "none",
-          cursor: loading ? "not-allowed" : "pointer",
           background: buttonGradient,
-          color: "#ffffff",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-          opacity: loading ? 0.3 : 1,
-          transition: "all 0.2s",
+          opacity: loading ? 0.35 : 1,
           transform: isHovered && !loading ? "scale(1.04)" : "scale(1)",
         }}
         onMouseEnter={() => setIsHovered(true)}
@@ -134,7 +97,7 @@ export default function InputBar({ onSend, loading = false, mode = "symptom" }) 
         <i
           className="ti ti-send"
           aria-hidden="true"
-          style={{ fontSize: "17px", color: "#ffffff", lineHeight: 1 }}
+          style={{ fontSize: "20px", color: "#ffffff", lineHeight: 1 }}
         />
       </button>
     </form>
