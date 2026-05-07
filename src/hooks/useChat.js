@@ -51,7 +51,7 @@ export default function useChat() {
     }));
 
     try {
-      const reply = await sendChatMessage(
+      const { reply, sev } = await sendChatMessage(
         nextModeHistory
           .filter((message) => message.role === "user" || message.role === "assistant")
           .map((message) => ({
@@ -67,7 +67,12 @@ export default function useChat() {
         ...prevHistory,
         [activeMode]: [
           ...(prevHistory[activeMode] ?? []),
-          { role: "assistant", content: reply },
+          {
+            role: "assistant",
+            content: reply,
+            sev: sev || null,
+            mode: activeMode,
+          },
         ],
       }));
       setAttachedFile(null);
@@ -78,60 +83,14 @@ export default function useChat() {
     }
   };
 
-  const attachFile = async (file) => {
-    if (!file) {
+  const attachFile = async (fileData) => {
+    if (!fileData) {
       setAttachedFile(null);
-      return false;
-    }
-
-    const isImage = file.type.startsWith("image/");
-    const isTextFile =
-      file.type.startsWith("text/") ||
-      [
-        "application/json",
-        "application/xml",
-      ].includes(file.type) ||
-      /\.(txt|csv|md|json|xml)$/i.test(file.name);
-
-    if (!isImage && !isTextFile) {
-      setAttachedFile(null);
-      setError("Only image and text-based files are supported.");
       return false;
     }
 
     try {
-      const data = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-
-        reader.onload = () => {
-          const result = reader.result;
-          const nextData =
-            isImage && typeof result === "string"
-              ? result.split(",")[1] ?? ""
-              : result;
-
-          resolve(nextData);
-        };
-
-        reader.onerror = () => {
-          reject(new Error("Failed to read file."));
-        };
-
-        if (isImage) {
-          reader.readAsDataURL(file);
-          return;
-        }
-
-        reader.readAsText(file);
-      });
-
-      setAttachedFile({
-        file,
-        data,
-        type: isImage ? "image" : "text",
-        mimeType: file.type,
-        name: file.name,
-      });
+      setAttachedFile(fileData);
       setError(null);
       return true;
     } catch (err) {

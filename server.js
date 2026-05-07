@@ -88,81 +88,115 @@ const SYMPTOM_DATASET = [
 
 const QA_DATASET = [
   {
+    phrases: ["blood pressure", "bp", "hypertension"],
     keywords: ["blood pressure", "normal bp", "hypertension question", "what is normal pressure"],
     response:
       "Normal blood pressure for many adults is generally around 120 over 80, though one reading alone does not always define your overall risk. It is best to measure at rest, track several readings, and review trends rather than reacting to a single number. See a doctor if your readings stay high over time, you are getting numbers above 140 over 90, or you have symptoms like headache, chest pain, or blurred vision.",
   },
   {
+    phrases: ["fasting sugar", "fasting glucose", "blood sugar level", "sugar level", "normal sugar"],
+    keywords: ["fasting", "sugar", "glucose", "hba1c", "random sugar", "diabetic"],
+    response:
+      "**Key fact:** Normal fasting blood sugar is 70-99 mg/dL. Pre-diabetes is 100-125 mg/dL. Diabetes is 126 mg/dL or above on two tests.\n\n**Explanation:** After 8 hours of fasting, your blood sugar reflects how well your body manages glucose overnight. Post-meal sugar (2 hours after eating) should be below 140 mg/dL.\n\n**Tip:** Test fasting sugar first thing in the morning before eating or drinking anything except water.\n\n⚠️ Consult a doctor for personal medical advice.",
+  },
+  {
+    phrases: ["diabetes", "diabetic", "high blood sugar"],
     keywords: ["diabetes", "blood sugar", "glucose", "a1c", "sugar question"],
     response:
       "Diabetes questions usually center on blood sugar control, diet, medication timing, and complication prevention, and the seriousness depends on how high or low the glucose levels are. Keeping a record of fasting sugar, post meal sugar, medications, and symptoms can make management much clearer. You should speak with a doctor if sugars are repeatedly very high, low episodes are happening, or you notice thirst, weight loss, blurry vision, or slow healing wounds.",
   },
   {
+    phrases: ["what causes fever", "why fever", "cause of fever"],
     keywords: ["what causes fever", "why fever", "cause of fever", "temperature cause"],
     response:
       "Fever is usually the body responding to infection, inflammation, or sometimes medication effects, and the overall severity depends on the underlying cause. Mild fever often improves with hydration, rest, and monitoring, but persistent or very high fever needs more attention. A doctor should evaluate fever if it lasts more than 3 days, rises above 103 F, or appears with confusion, stiff neck, or breathing trouble.",
   },
   {
+    phrases: ["antibiotics", "do i need antibiotics", "bacterial infection"],
     keywords: ["antibiotics", "do i need antibiotics", "infection medicine", "bacterial infection"],
     response:
       "Antibiotics only help bacterial infections and do not treat most viral illnesses like common colds or many sore throats, so taking them unnecessarily can cause side effects and resistance. The right treatment depends on symptoms, exam findings, and sometimes testing rather than guessing from one symptom alone. See a doctor if symptoms are severe, prolonged, or clearly worsening so they can decide whether antibiotics or another treatment is appropriate.",
   },
   {
+    phrases: ["when to see doctor", "should i see doctor", "urgent care"],
     keywords: ["when to see doctor", "should i see doctor", "doctor visit", "urgent care"],
     response:
       "A good rule is to seek medical care sooner when symptoms are severe, rapidly worsening, unusually persistent, or interfering with eating, breathing, or staying hydrated. Many mild issues can be watched at home for a short time with rest, fluids, and symptom tracking. You should get urgent help for chest pain, trouble breathing, confusion, fainting, stroke symptoms, or any situation that feels unsafe.",
   },
   {
+    phrases: ["dehydration", "am i dehydrated", "signs of dehydration"],
     keywords: ["dehydration", "am i dehydrated", "signs of dehydration", "not enough water"],
     response:
       "Dehydration can cause dry mouth, dizziness, dark urine, fatigue, and headache, and it becomes more serious when vomiting, diarrhea, or fever are also present. Small frequent sips of water or oral rehydration solution are usually a good first step if you can keep fluids down. See a doctor if urination becomes very infrequent, dizziness is severe, confusion appears, or fluids cannot be kept down.",
   },
   {
+    phrases: ["can't sleep", "sleep better", "insomnia", "sleep quality"],
     keywords: ["sleep", "how much sleep", "sleep hours", "healthy sleep"],
     response:
       "Most adults do best with around 7 to 9 hours of sleep, though quality matters as much as duration when you are assessing how rested you feel. A steady sleep schedule, limiting late caffeine, and reducing screens before bed are practical first steps when sleep is off. Medical advice is helpful if insomnia is persistent, daytime sleepiness is significant, or loud snoring and breathing pauses are present.",
   },
   {
+    phrases: ["stress", "stress symptoms", "effects of stress"],
     keywords: ["stress question", "what does stress do", "effects of stress", "stress symptoms"],
     response:
       "Stress can affect sleep, digestion, focus, mood, muscle tension, and even blood pressure, and its severity depends on how long it has been building and how much it is affecting daily life. Exercise, structured breaks, journaling, and calming breathing exercises can lower the physical load stress puts on the body. A doctor or therapist should be involved if stress is leading to panic, burnout, substance use, or inability to function normally.",
   },
   {
+    phrases: ["what is anxiety", "anxiety question", "panic question"],
     keywords: ["anxiety question", "what is anxiety", "panic question", "anxious all the time"],
     response:
       "Anxiety is a state of heightened worry or physical alarm that can cause racing thoughts, chest tightness, trembling, stomach upset, or poor sleep, and it can range from manageable to overwhelming. Grounding techniques, slower breathing, and reducing caffeine may help in the short term while you notice patterns and triggers. Professional help is important if anxiety is frequent, leads to panic attacks, or is disrupting work, school, sleep, or relationships.",
   },
   {
+    phrases: ["what is depression", "depression question", "low mood"],
     keywords: ["depression question", "what is depression", "low mood", "sad all the time"],
     response:
       "Depression is more than a bad day and can involve low mood, loss of interest, fatigue, guilt, poor sleep, and appetite changes over a sustained period. Support from routine, movement, sunlight, and trusted people can help, but ongoing symptoms often need structured care. Please see a doctor or therapist if symptoms last more than 2 weeks, functioning is dropping, or thoughts of self harm appear.",
   },
   {
+    phrases: ["cholesterol", "ldl", "hdl", "lipid"],
+    keywords: ["cholesterol", "ldl", "hdl", "triglycerides", "lipid"],
+    response:
+      "**Key fact:** Total cholesterol should be below 200 mg/dL. LDL (bad) should be below 100 mg/dL, HDL (good) above 60 mg/dL.\n\n**Explanation:** High LDL builds up in arteries and raises heart attack risk. HDL removes cholesterol from blood vessels.\n\n**Tip:** Eat more fibre, reduce saturated fats, and exercise regularly to improve your lipid profile.\n\n⚠️ Consult a doctor for personal medical advice.",
+  },
+  {
+    phrases: ["vitamin d", "vitamin b12", "vitamin deficiency", "low vitamin"],
+    keywords: ["vitamin", "deficiency", "b12", "iron deficiency", "anemia"],
+    response:
+      "**Key fact:** Vitamin D normal range is 30-100 ng/mL. Vitamin B12 normal is 200-900 pg/mL.\n\n**Explanation:** Deficiencies cause fatigue, bone pain (D), nerve issues and anaemia (B12), and poor immunity. Very common in India due to diet and limited sun exposure.\n\n**Tip:** Get tested before supplementing - excess vitamin D can be toxic.\n\n⚠️ Consult a doctor for personal medical advice.",
+  },
+  {
+    phrases: ["diet", "healthy eating", "nutrition"],
     keywords: ["diet", "healthy eating", "what should i eat", "nutrition question"],
     response:
       "A healthy diet usually means balanced meals with vegetables, fruit, protein, fiber, and enough water, while limiting excessive sugar, salt, and ultra processed foods. The severity of dietary issues depends on whether they are contributing to weight change, blood sugar problems, fatigue, or digestive symptoms. A doctor or dietitian is worth seeing if you have major weight changes, chronic digestive issues, diabetes, kidney disease, or trouble meeting your nutritional needs.",
   },
   {
+    phrases: ["exercise", "how much exercise", "fitness"],
     keywords: ["exercise", "how much exercise", "workout health", "fitness question"],
     response:
       "Many adults benefit from around 150 minutes of moderate exercise each week plus strength work, but the safest plan depends on age, fitness level, and medical conditions. Starting gradually and choosing something sustainable is usually better than pushing too hard and stopping. Medical clearance is smart if you have heart symptoms, severe shortness of breath, uncontrolled blood pressure, or other chronic disease concerns.",
   },
   {
+    phrases: ["cold or flu", "difference cold flu", "flu symptoms"],
     keywords: ["cold or flu", "difference cold flu", "is it flu", "flu symptoms"],
     response:
       "A cold often develops more gradually with congestion and sneezing, while flu can hit harder with fever, body aches, and marked fatigue, though symptoms can overlap. Rest, fluids, temperature control, and monitoring breathing are useful either way in the early phase. See a doctor if fever is high, breathing becomes difficult, dehydration develops, or you are in a high risk group such as older age or chronic illness.",
   },
   {
+    phrases: ["heart attack signs", "signs of heart attack", "heart symptoms"],
     keywords: ["heart attack signs", "signs of heart attack", "cardiac emergency", "heart symptoms"],
     response:
       "Heart attack warning signs can include pressure or pain in the chest, pain spreading to the arm or jaw, shortness of breath, sweating, nausea, or sudden weakness. This is always a potentially high severity situation and should not be managed casually at home. Call emergency services right away if these symptoms are present, especially if they are new, intense, or persistent.",
   },
   {
+    phrases: ["stroke signs", "signs of stroke", "face drooping", "speech trouble"],
     keywords: ["stroke signs", "signs of stroke", "face drooping", "speech trouble"],
     response:
       "Stroke symptoms often include face drooping, arm weakness, speech difficulty, sudden confusion, vision change, or loss of balance, and the severity is an emergency from the first minute. Immediate treatment can protect brain function, so waiting to see if it passes is risky. Call emergency services immediately if any of these symptoms appear suddenly, even if they improve.",
   },
   {
+    phrases: ["pregnancy nausea", "morning sickness", "pregnant and nauseous"],
     keywords: ["pregnancy nausea", "morning sickness", "pregnant and nauseous", "pregnancy question"],
     response:
       "Nausea in pregnancy is often common early on, but the severity matters if vomiting is frequent or fluids are hard to keep down. Small bland meals, ginger, hydration, and avoiding strong triggers may reduce symptoms for some people. Please see a doctor if weight loss, dehydration, severe vomiting, abdominal pain, or bleeding occurs.",
@@ -337,6 +371,10 @@ function normalizeText(value) {
     .trim();
 }
 
+function escapeRegExp(value) {
+  return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function getLatestUserMessage(messages) {
   if (!Array.isArray(messages)) {
     return "";
@@ -352,51 +390,68 @@ function getLatestUserMessage(messages) {
   return "";
 }
 
-function scoreEntry(input, entry) {
+function findBestMatch(input, dataset) {
   const normalizedInput = normalizeText(input);
-  if (!normalizedInput) {
-    return 0;
+
+  if (!normalizedInput || !Array.isArray(dataset) || dataset.length === 0) {
+    return null;
   }
 
-  const inputTokens = new Set(normalizedInput.split(" ").filter(Boolean));
-
-  return entry.keywords.reduce((score, keyword) => {
-    const normalizedKeyword = normalizeText(keyword);
-    if (!normalizedKeyword) {
-      return score;
+  const hasPhraseMatch = (candidate) => {
+    const normalizedCandidate = normalizeText(candidate);
+    if (!normalizedCandidate) {
+      return false;
     }
 
-    const keywordTokens = normalizedKeyword.split(" ").filter(Boolean);
-    const exactPhraseMatch = normalizedInput.includes(normalizedKeyword);
-    const tokenOverlap = keywordTokens.filter((token) => inputTokens.has(token)).length;
-    const fullTokenMatch =
-      keywordTokens.length > 1 && keywordTokens.every((token) => inputTokens.has(token));
+    const pattern = new RegExp(`\\b${escapeRegExp(normalizedCandidate).replace(/\s+/g, "\\s+")}\\b`, "i");
+    return pattern.test(normalizedInput);
+  };
 
-    if (exactPhraseMatch) {
-      return score + keywordTokens.length + 2;
+  let bestMatch = null;
+
+  dataset.forEach((entry, index) => {
+    const phraseMatched = Array.isArray(entry.phrases) && entry.phrases.some(hasPhraseMatch);
+    let score = phraseMatched ? 10 : 0;
+
+    (entry.keywords || []).forEach((keyword) => {
+      const normalizedKeyword = normalizeText(keyword);
+      if (!normalizedKeyword) {
+        return;
+      }
+
+      const compactKeywordLength = normalizedKeyword.replace(/\s+/g, "").length;
+      const exactWordPattern = new RegExp(
+        `\\b${escapeRegExp(normalizedKeyword).replace(/\s+/g, "\\s+")}\\b`,
+        "i"
+      );
+
+      if (compactKeywordLength >= 5 || exactWordPattern.test(normalizedInput)) {
+        if (exactWordPattern.test(normalizedInput)) {
+          score += 1;
+        }
+      }
+    });
+
+    if (score < 1) {
+      return;
     }
 
-    if (fullTokenMatch) {
-      return score + keywordTokens.length + 1;
+    if (!bestMatch) {
+      bestMatch = { entry, score, phraseMatched, index };
+      return;
     }
 
-    return score + tokenOverlap;
-  }, 0);
-}
+    if (score > bestMatch.score) {
+      bestMatch = { entry, score, phraseMatched, index };
+      return;
+    }
 
-function findBestMatch(input, dataset) {
-  let bestEntry = null;
-  let bestScore = 0;
-
-  dataset.forEach((entry) => {
-    const score = scoreEntry(input, entry);
-    if (score > bestScore) {
-      bestScore = score;
-      bestEntry = entry;
+    if (score === bestMatch.score && phraseMatched && !bestMatch.phraseMatched) {
+      bestMatch = { entry, score, phraseMatched, index };
     }
   });
 
-  return { bestEntry, bestScore };
+  return bestMatch ? bestMatch.entry : null;
 }
 
 function extractUniqueMatches(text, candidates) {
@@ -502,9 +557,9 @@ export default async function sendMessage(messages, systemPrompt, fileData, mode
   }
 
   const userInput = getLatestUserMessage(messages) || systemPrompt || "";
-  const { bestEntry, bestScore } = findBestMatch(userInput, dataset);
+  const bestEntry = findBestMatch(userInput, dataset);
 
-  if (!bestEntry || bestScore === 0) {
+  if (!bestEntry) {
     return FALLBACKS[mode] || "I could not find a helpful local match for that message.";
   }
 

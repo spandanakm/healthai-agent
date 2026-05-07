@@ -1,88 +1,117 @@
 import { useState } from "react";
 
-const tabs = [
-  { id: "symptom", icon: "\uD83E\uDE7A", label: "Symptoms" },
-  { id: "qa", icon: "\uD83D\uDCAC", label: "Medical Q&A" },
-  { id: "mental", icon: "\uD83E\uDDE0", label: "Mental Health" },
-  { id: "report", icon: "\uD83D\uDCC4", label: "Report" },
-];
-
-const containerStyle = {
-  display: "flex",
-  flexDirection: "row",
-  gap: "8px",
-};
-
-const baseTabStyle = {
-  flex: 1,
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "4px",
-  padding: "10px 8px 8px",
-  border: "none",
-  borderBottomWidth: "2px",
-  borderBottomStyle: "solid",
-  borderBottomColor: "transparent",
-  background: "#F2F4F7",
-  color: "#667085",
-  cursor: "pointer",
-  transition: "all 0.15s ease",
-};
-
-const activeTabStyle = {
-  background: "#FFFFFF",
-  color: "#0F6E56",
-  borderBottomColor: "#1D9E75",
-};
-
-const hoverTabStyle = {
-  background: "#FFFFFF",
-  color: "#475467",
-};
-
 export default function TabBar({ currentMode, onSwitch }) {
   const [hoveredTab, setHoveredTab] = useState(null);
+
+  const tabs = [
+    {
+      id: "symptom",
+      label: "SYMPTOMS",
+      icon: "ti-stethoscope",
+      activeClass: "s",
+      activeBg: "linear-gradient(135deg,#6C63FF25,#8B5CF625)",
+      activeBorder: "#6C63FF60",
+      activeColor: "#a78bfa",
+    },
+    {
+      id: "qa",
+      label: "MED Q&A",
+      icon: "ti-pill",
+      activeClass: "q",
+      activeBg: "linear-gradient(135deg,#F59E0B25,#EF444425)",
+      activeBorder: "#F59E0B60",
+      activeColor: "#fbbf24",
+    },
+    {
+      id: "mental",
+      label: "MENTAL",
+      icon: "ti-heart",
+      activeClass: "m",
+      activeBg: "linear-gradient(135deg,#EC489925,#F9731625)",
+      activeBorder: "#EC489960",
+      activeColor: "#f472b6",
+    },
+    {
+      id: "report",
+      label: "REPORT",
+      icon: "ti-file-analytics",
+      activeClass: "r",
+      activeBg: "linear-gradient(135deg,#10B98125,#06B6D425)",
+      activeBorder: "#10B98160",
+      activeColor: "#34D399",
+    },
+  ];
+
+  const containerStyle = {
+    background: "#12122a",
+    padding: "10px 14px",
+    display: "flex",
+    gap: "8px",
+  };
+
+  const getTabStyle = (tab, isActive, isHovered) => ({
+    flex: 1,
+    padding: "10px 8px",
+    borderRadius: "14px",
+    border: "1px solid transparent",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "5px",
+    cursor: "pointer",
+    transition: "all 0.25s",
+    color: isActive ? tab.activeColor : "#4a5568",
+    background: isActive
+      ? tab.activeBg
+      : isHovered
+        ? "rgba(255,255,255,0.05)"
+        : "transparent",
+    borderColor: isActive
+      ? tab.activeBorder
+      : isHovered
+        ? "rgba(255,255,255,0.1)"
+        : "transparent",
+  });
+
+  const iconStyle = {
+    fontSize: "20px",
+    lineHeight: 1,
+  };
+
+  const labelStyle = {
+    fontSize: "10px",
+    fontWeight: 500,
+    letterSpacing: "0.3px",
+    lineHeight: 1,
+  };
 
   return (
     <div style={containerStyle}>
       {tabs.map((tab) => {
-        const isActive = currentMode === tab.id;
-        const isHovered = hoveredTab === tab.id;
+        const isActive = tab.id === currentMode;
+        const isHovered = tab.id === hoveredTab;
 
         return (
-          <button
+          <div
             key={tab.id}
-            type="button"
+            role="button"
+            tabIndex={0}
+            aria-pressed={isActive}
+            data-active-class={tab.activeClass}
             onClick={() => onSwitch?.(tab.id)}
             onMouseEnter={() => setHoveredTab(tab.id)}
             onMouseLeave={() => setHoveredTab(null)}
-            style={{
-              ...baseTabStyle,
-              ...(isHovered && !isActive ? hoverTabStyle : null),
-              ...(isActive ? activeTabStyle : null),
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onSwitch?.(tab.id);
+              }
             }}
+            style={getTabStyle(tab, isActive, isHovered)}
           >
-            <span
-              aria-hidden="true"
-              style={{
-                fontSize: "15px",
-                lineHeight: 1,
-              }}
-            >
-              {tab.icon}
-            </span>
-            <span
-              style={{
-                fontSize: "11px",
-                fontWeight: 600,
-                lineHeight: 1.2,
-              }}
-            >
-              {tab.label}
-            </span>
-          </button>
+            <i className={`ti ${tab.icon}`} aria-hidden="true" style={iconStyle} />
+            <span style={labelStyle}>{tab.label}</span>
+          </div>
         );
       })}
     </div>

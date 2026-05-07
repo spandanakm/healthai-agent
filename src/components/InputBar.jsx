@@ -1,42 +1,44 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
-const wrapperStyle = {
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
-  padding: "8px 10px",
-  borderTop: "1px solid #EAECF0",
+const gradientMap = {
+  symptom: "linear-gradient(135deg,#6C63FF,#8B5CF6)",
+  qa: "linear-gradient(135deg,#F59E0B,#EF4444)",
+  mental: "linear-gradient(135deg,#EC4899,#F97316)",
+  report: "linear-gradient(135deg,#10B981,#06B6D4)",
 };
 
-const inputStyle = {
-  flex: 1,
-  border: "1px solid #D0D5DD",
-  borderRadius: "20px",
+const accentMap = {
+  symptom: "#6C63FF",
+  qa: "#F59E0B",
+  mental: "#EC4899",
+  report: "#10B981",
+};
+
+const containerStyle = {
+  background: "#12122a",
   padding: "10px 14px",
-  fontSize: "14px",
-  lineHeight: 1.4,
-  outline: "none",
-  resize: "none",
-  minHeight: "40px",
-  maxHeight: "96px",
-};
-
-const buttonStyle = {
-  width: "32px",
-  height: "32px",
-  borderRadius: "999px",
-  border: "none",
-  background: "#1D9E75",
-  color: "#FFFFFF",
   display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  cursor: "pointer",
-  flexShrink: 0,
+  alignItems: "flex-end",
+  gap: "8px",
+  borderTop: "1px solid rgba(255,255,255,0.08)",
 };
 
-export default function InputBar({ onSend, loading = false }) {
+export default function InputBar({ onSend, loading = false, mode = "symptom" }) {
   const [inputText, setInputText] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const textareaRef = useRef(null);
+  const accentColor = accentMap[mode] ?? accentMap.symptom;
+  const buttonGradient = gradientMap[mode] ?? gradientMap.symptom;
+
+  const autoResize = (element) => {
+    if (!element) {
+      return;
+    }
+
+    element.style.height = "38px";
+    element.style.height = `${Math.min(element.scrollHeight, 80)}px`;
+  };
 
   const handleSend = async () => {
     const trimmed = inputText.trim();
@@ -47,6 +49,9 @@ export default function InputBar({ onSend, loading = false }) {
 
     await onSend?.(trimmed);
     setInputText("");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "38px";
+    }
   };
 
   return (
@@ -55,14 +60,23 @@ export default function InputBar({ onSend, loading = false }) {
         event.preventDefault();
         handleSend();
       }}
-      style={wrapperStyle}
+      style={containerStyle}
     >
+      <style>{`.input-bar-textarea::placeholder{color:#4a5568;}`}</style>
       <textarea
+        ref={textareaRef}
+        className="input-bar-textarea"
         value={inputText}
         placeholder="Type your message..."
         disabled={loading}
         rows={1}
-        onChange={(event) => setInputText(event.target.value)}
+        onChange={(event) => {
+          setInputText(event.target.value);
+          autoResize(event.target);
+        }}
+        onInput={(event) => autoResize(event.currentTarget)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         onKeyDown={(event) => {
           if (
             event.key === "Enter" &&
@@ -74,9 +88,23 @@ export default function InputBar({ onSend, loading = false }) {
           }
         }}
         style={{
-          ...inputStyle,
+          flex: 1,
+          background: "#1e1e35",
+          border: `1.5px solid ${
+            isFocused ? `${accentColor}80` : "rgba(255,255,255,0.1)"
+          }`,
+          borderRadius: "14px",
+          padding: "9px 14px",
+          fontSize: "13px",
+          resize: "none",
+          minHeight: "38px",
+          maxHeight: "80px",
+          color: "#e2e8f0",
+          outline: "none",
+          overflowY: "auto",
+          lineHeight: 1.45,
           cursor: loading ? "not-allowed" : "text",
-          background: loading ? "#F9FAFB" : "#FFFFFF",
+          boxSizing: "border-box",
         }}
       />
 
@@ -85,34 +113,29 @@ export default function InputBar({ onSend, loading = false }) {
         disabled={loading}
         aria-label="Send message"
         style={{
-          ...buttonStyle,
-          opacity: loading ? 0.6 : 1,
+          width: "40px",
+          height: "40px",
+          borderRadius: "14px",
+          border: "none",
           cursor: loading ? "not-allowed" : "pointer",
+          background: buttonGradient,
+          color: "#ffffff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          opacity: loading ? 0.3 : 1,
+          transition: "all 0.2s",
+          transform: isHovered && !loading ? "scale(1.04)" : "scale(1)",
         }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+        <i
+          className="ti ti-send"
           aria-hidden="true"
-        >
-          <path
-            d="M3 11.5L20.5 4L13 21L10.75 13.75L3 11.5Z"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M10.5 13.5L20 4"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+          style={{ fontSize: "17px", color: "#ffffff", lineHeight: 1 }}
+        />
       </button>
     </form>
   );

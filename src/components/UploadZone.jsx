@@ -1,27 +1,87 @@
 import { useRef, useState } from "react";
 
-const ACCEPTED_TYPES = "image/*,text/*,application/json,.txt,.csv,.md";
-const TEAL = "#1D9E75";
-const LIGHT_TEAL = "#E8F7F1";
+const ACCEPTED_TYPES = "text/*,.txt,.csv,.md,application/pdf,.pdf";
 
 function formatFileSize(sizeInBytes) {
   const kb = Number(sizeInBytes || 0) / 1024;
   return `${Math.max(kb, 0.1).toFixed(kb >= 10 ? 0 : 1)} KB`;
 }
 
-export default function UploadZone({ onFile, attachedFile, onClear }) {
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Failed to read file."));
+    reader.readAsText(file);
+  });
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Failed to read file."));
+    reader.readAsDataURL(file);
+  });
+}
+
+export default function UploadZone({ attachedFile, onFile, onClear }) {
   const inputRef = useRef(null);
   const dragDepthRef = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleFile = async (file) => {
+    if (!file) {
+      setIsDragging(false);
+      return;
+    }
+
     try {
-      if (file) {
-        await onFile?.(file);
+      const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+      const isImage = file.type.startsWith("image/");
+      const isText =
+        file.type.startsWith("text/") || /\.(txt|csv|md)$/i.test(file.name);
+
+      if (isPdf) {
+        await onFile?.({
+          name: file.name,
+          size: file.size,
+          data: null,
+          type: "pdf",
+        });
+        return;
       }
+
+      if (isText) {
+        const text = await readFileAsText(file);
+        await onFile?.({
+          name: file.name,
+          size: file.size,
+          data: text,
+          type: "text",
+        });
+        return;
+      }
+
+      if (isImage) {
+        const base64 = await readFileAsDataUrl(file);
+        await onFile?.({
+          name: file.name,
+          size: file.size,
+          data: base64,
+          type: "image",
+          mimeType: file.type,
+        });
+        return;
+      }
+
+      alert("Only text, PDF, and image files are supported");
     } catch (error) {
       console.error("Failed to attach file:", error);
+      alert("Failed to read file.");
     } finally {
+      dragDepthRef.current = 0;
       setIsDragging(false);
     }
   };
@@ -58,95 +118,72 @@ export default function UploadZone({ onFile, attachedFile, onClear }) {
 
   if (attachedFile) {
     return (
-      <div style={{ paddingTop: "10px" }}>
+      <div
+        style={{
+          margin: "0 16px 10px",
+          background: "#0d2018",
+          border: "1px solid #10B98160",
+          borderRadius: "12px",
+          padding: "9px 14px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "12px",
+        }}
+      >
         <div
           style={{
+            minWidth: 0,
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
-            gap: "12px",
-            border: `2px solid ${TEAL}`,
-            borderRadius: "12px",
-            padding: "16px",
-            background: "#F8FCFA",
+            gap: "8px",
+            color: "#34D399",
+            fontSize: "12px",
+            fontWeight: 500,
           }}
         >
-          <div
+          <i
+            className="ti ti-file-check"
+            aria-hidden="true"
+            style={{ fontSize: "18px", color: "#34D399", flexShrink: 0 }}
+          />
+          <span
             style={{
               minWidth: 0,
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
             }}
           >
-            <span
-              aria-hidden="true"
-              style={{
-                width: "24px",
-                height: "24px",
-                borderRadius: "999px",
-                background: LIGHT_TEAL,
-                color: TEAL,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                fontSize: "14px",
-                fontWeight: 700,
-              }}
-            >
-              {"\u2713"}
-            </span>
-
-            <div style={{ minWidth: 0 }}>
-              <div
-                style={{
-                  color: "#101828",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {attachedFile.name}
-              </div>
-              <div
-                style={{
-                  color: "#667085",
-                  fontSize: "12px",
-                  marginTop: "2px",
-                }}
-              >
-                {formatFileSize(attachedFile.size)}
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={onClear}
-            aria-label="Remove attached file"
-            style={{
-              border: "none",
-              background: "transparent",
-              color: TEAL,
-              cursor: "pointer",
-              fontSize: "20px",
-              lineHeight: 1,
-              padding: 0,
-              flexShrink: 0,
-            }}
-          >
-            {"\u2715"}
-          </button>
+            {attachedFile.name} ({formatFileSize(attachedFile.size)})
+          </span>
         </div>
+
+        <button
+          type="button"
+          onClick={onClear}
+          aria-label="Clear attached file"
+          style={{
+            background: "none",
+            border: "none",
+            color: "#64748b",
+            cursor: "pointer",
+            fontSize: "16px",
+            lineHeight: 1,
+            padding: 0,
+            flexShrink: 0,
+          }}
+        >
+          {"\u00D7"}
+        </button>
       </div>
     );
   }
 
+  const isActive = isDragging || isHovered;
+
   return (
-    <div style={{ paddingTop: "10px" }}>
+    <>
       <input
         ref={inputRef}
         type="file"
@@ -165,56 +202,53 @@ export default function UploadZone({ onFile, attachedFile, onClear }) {
             inputRef.current?.click();
           }
         }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         onDragOver={handleDragOver}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         style={{
-          border: `2px ${isDragging ? "solid" : "dashed"} ${TEAL}`,
-          borderRadius: "12px",
-          padding: "16px",
-          background: isDragging ? "#ECFDF3" : "#FFFFFF",
-          color: "#344054",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "8px",
+          margin: "0 16px 10px",
+          border: `2px ${isDragging ? "solid" : "dashed"} ${isActive ? "#10B981" : "#10B98180"}`,
+          borderRadius: "16px",
+          padding: "14px",
           textAlign: "center",
           cursor: "pointer",
-          transition: "border-color 180ms ease, background 180ms ease, box-shadow 180ms ease",
-          boxShadow: isDragging ? "0 0 0 4px rgba(29, 158, 117, 0.12)" : "none",
+          background: isActive ? "#0d2018" : "#1a2535",
+          transition: "background 160ms ease, border-color 160ms ease",
         }}
       >
-        <div
+        <i
+          className="ti ti-cloud-upload"
           aria-hidden="true"
           style={{
-            fontSize: "24px",
+            display: "block",
+            fontSize: "26px",
+            color: "#34D399",
             lineHeight: 1,
+            marginBottom: "8px",
           }}
-        >
-          {"\uD83D\uDCCE"}
-        </div>
-
+        />
         <div
           style={{
-            fontSize: "16px",
-            fontWeight: 600,
-            color: "#101828",
+            fontSize: "12px",
+            fontWeight: 500,
+            color: "#34D399",
+            marginBottom: "4px",
           }}
         >
           Upload Medical Report
         </div>
         <div
           style={{
-            fontSize: "13px",
-            lineHeight: 1.5,
-            color: "#667085",
+            fontSize: "10px",
+            color: "#64748b",
           }}
         >
-          Supports: images (JPG, PNG) and text files (TXT, CSV, PDF text)
+          TXT, CSV, MD, PDF — drag or click to upload
         </div>
       </div>
-    </div>
+    </>
   );
 }

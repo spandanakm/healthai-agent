@@ -1,171 +1,238 @@
-const baseTextStyle = {
-  fontSize: "13px",
-  lineHeight: 1.55,
-  whiteSpace: "pre-wrap",
+const POP_ANIMATION_NAME = "messageBubblePop";
+
+const TAB_COLORS = {
+  symptom: {
+    accent: "#a78bfa",
+    secBg: "#2d1f5e",
+    secTxt: "#c4b5fd",
+    warnBg: "#2d2010",
+    warnC: "#fbbf24",
+    warnBorder: "#F59E0B",
+    dotC: "#a78bfa",
+    gradient: "linear-gradient(135deg,#6C63FF,#8B5CF6)",
+  },
+  qa: {
+    accent: "#fbbf24",
+    secBg: "#2d2010",
+    secTxt: "#fcd34d",
+    warnBg: "#2d1515",
+    warnC: "#fca5a5",
+    warnBorder: "#EF4444",
+    dotC: "#fbbf24",
+    gradient: "linear-gradient(135deg,#F59E0B,#EF4444)",
+  },
+  mental: {
+    accent: "#f472b6",
+    secBg: "#2d1030",
+    secTxt: "#f9a8d4",
+    warnBg: "#2d1020",
+    warnC: "#fda4af",
+    warnBorder: "#EC4899",
+    dotC: "#f472b6",
+    gradient: "linear-gradient(135deg,#EC4899,#F97316)",
+  },
+  report: {
+    accent: "#34D399",
+    secBg: "#0d2030",
+    secTxt: "#6ee7b7",
+    warnBg: "#0d2030",
+    warnC: "#67e8f9",
+    warnBorder: "#06B6D4",
+    dotC: "#34D399",
+    gradient: "linear-gradient(135deg,#10B981,#06B6D4)",
+  },
 };
 
-const assistantTextStyle = {
-  fontSize: "13px",
-  lineHeight: 1.55,
+const SEVERITY_STYLES = {
+  Serious: {
+    color: "#EF4444",
+    background: "#2d1010",
+    borderColor: "#EF4444",
+  },
+  Moderate: {
+    color: "#F59E0B",
+    background: "#2d2010",
+    borderColor: "#F59E0B",
+  },
+  Mild: {
+    color: "#10B981",
+    background: "#0d2018",
+    borderColor: "#10B981",
+  },
 };
 
-const avatarStyle = {
-  width: "32px",
-  height: "32px",
-  borderRadius: "999px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  flexShrink: 0,
-  fontSize: "13px",
-  fontWeight: 600,
-};
+function isEmojiHeader(line) {
+  return /^(?:\p{Extended_Pictographic}|\p{Emoji_Presentation})\s/u.test(line);
+}
 
-const assistantHeaderPattern = /^(\p{Emoji_Presentation}|\p{Extended_Pictographic})\s+[A-Z0-9][A-Z0-9\s&/:-]*$/u;
+function renderAssistantLine(line, index, palette) {
+  const trimmedLine = line.trim();
 
-const assistantBlockStyle = {
-  margin: 0,
-  fontSize: "13px",
-  lineHeight: 1.55,
-};
+  if (!trimmedLine) {
+    return <div key={`space-${index}`} style={{ height: "4px" }} />;
+  }
 
-const assistantListRowStyle = {
-  display: "flex",
-  alignItems: "flex-start",
-  gap: "8px",
-  margin: 0,
-  fontSize: "13px",
-  lineHeight: 1.55,
-};
-
-const assistantBulletStyle = {
-  width: "8px",
-  height: "8px",
-  borderRadius: "999px",
-  background: "#1D9E75",
-  flexShrink: 0,
-  marginTop: "6px",
-};
-
-function renderAssistantContent(content) {
-  return String(content || "").split("\n").map((rawLine, index) => {
-    const line = rawLine.trim();
-
-    if (!line) {
-      return <div key={`assistant-spacer-${index}`} style={{ height: "8px" }} />;
-    }
-
-    if (assistantHeaderPattern.test(line)) {
-      return (
-        <div
-          key={`assistant-header-${index}`}
+  if (trimmedLine.startsWith("- ") || trimmedLine.startsWith("\u2022 ")) {
+    return (
+      <div
+        key={`bullet-${index}`}
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          gap: "8px",
+          margin: "0 0 4px",
+        }}
+      >
+        <span
+          aria-hidden="true"
           style={{
-            ...assistantBlockStyle,
-            fontWeight: 700,
-            background: "#E8F7F1",
-            padding: "6px 10px",
-            borderRadius: "8px",
-            marginBottom: "6px",
+            width: "7px",
+            height: "7px",
+            borderRadius: "999px",
+            background: palette.dotC,
+            flexShrink: 0,
+            marginTop: "6px",
+            boxShadow: `0 0 0 3px ${palette.accent}20`,
           }}
-        >
-          {line}
+        />
+        <div style={{ color: "#cbd5e1", fontSize: "13px", lineHeight: 1.6 }}>
+          {trimmedLine.slice(2).trim()}
         </div>
-      );
-    }
+      </div>
+    );
+  }
 
-    if (line.startsWith("**") && line.endsWith("**") && line.length > 4) {
-      return (
+  if (isEmojiHeader(trimmedLine)) {
+    return (
+      <div key={`header-${index}`} style={{ margin: "4px 0" }}>
         <div
-          key={`assistant-bold-${index}`}
-          style={{ ...assistantBlockStyle, fontWeight: 700 }}
-        >
-          {line.slice(2, -2)}
-        </div>
-      );
-    }
-
-    if (line.startsWith("- ") || line.startsWith("\u2022 ")) {
-      return (
-        <div key={`assistant-list-${index}`} style={assistantListRowStyle}>
-          <span aria-hidden="true" style={assistantBulletStyle} />
-          <span>{line.slice(2).trim()}</span>
-        </div>
-      );
-    }
-
-    if (line.includes("\u26A0\uFE0F")) {
-      return (
-        <div
-          key={`assistant-warning-${index}`}
           style={{
-            ...assistantBlockStyle,
-            background: "#FFFBEB",
-            color: "#92400E",
-            padding: "6px 10px",
+            display: "inline-block",
+            background: palette.secBg,
+            color: palette.secTxt,
+            fontSize: "11px",
+            lineHeight: 1.4,
+            padding: "3px 10px",
             borderRadius: "6px",
           }}
         >
-          {line}
+          {trimmedLine}
         </div>
-      );
-    }
-
-    return (
-      <p key={`assistant-paragraph-${index}`} style={assistantBlockStyle}>
-        {line}
-      </p>
+      </div>
     );
-  });
+  }
+
+  if (
+    trimmedLine.includes("\u26A0\uFE0F") ||
+    trimmedLine.toLowerCase().includes("always consult")
+  ) {
+    return (
+      <div
+        key={`warning-${index}`}
+        style={{
+          background: palette.warnBg,
+          color: palette.warnC,
+          borderLeft: `3px solid ${palette.warnBorder}`,
+          padding: "6px 10px",
+          borderRadius: "8px",
+          fontSize: "11px",
+          lineHeight: 1.55,
+          margin: "2px 0",
+        }}
+      >
+        {trimmedLine}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      key={`text-${index}`}
+      style={{ color: "#cbd5e1", fontSize: "13px", lineHeight: 1.6 }}
+    >
+      {trimmedLine}
+    </div>
+  );
 }
 
-export default function MessageBubble({ role, content, fileName }) {
+export default function MessageBubble({
+  role,
+  content,
+  fileName,
+  sev,
+  mode,
+}) {
+  const palette = TAB_COLORS[mode] ?? TAB_COLORS.symptom;
+  const severityStyle = sev ? SEVERITY_STYLES[sev] : null;
+  const rowStyle = {
+    display: "flex",
+    flexDirection: role === "user" ? "row-reverse" : "row",
+    justifyContent: role === "user" ? "flex-start" : "flex-start",
+    alignItems: "flex-end",
+    gap: "8px",
+    animation: `${POP_ANIMATION_NAME} 0.22s cubic-bezier(0.34,1.56,0.64,1)`,
+  };
+
   if (role === "file") {
     return (
       <>
         <style>
           {`
-            @keyframes messageBubbleFadeUp {
+            @keyframes ${POP_ANIMATION_NAME} {
               from {
                 opacity: 0;
-                transform: translateY(8px);
+                transform: scale(0.96) translateY(8px);
               }
               to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: scale(1) translateY(0);
               }
             }
           `}
         </style>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "flex-end",
-            gap: "8px",
-            animation: "messageBubbleFadeUp 220ms ease-out",
-          }}
-        >
+        <div style={rowStyle}>
+          <div
+            aria-hidden="true"
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              background: "#1e1e35",
+              border: `1px solid ${palette.accent}40`,
+              color: palette.accent,
+              fontSize: "16px",
+            }}
+          >
+            <i className="ti ti-robot" />
+          </div>
+
           <div
             style={{
-              background: "#E8F7F1",
-              border: "1px solid #B8E5D4",
-              borderRadius: "14px",
+              background: "#1e1e35",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "4px 18px 18px 18px",
+              color: "#e2e8f0",
               padding: "10px 12px",
               maxWidth: "320px",
             }}
           >
             <div
               style={{
-                ...baseTextStyle,
-                color: "#1D9E75",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                color: palette.accent,
+                fontSize: "13px",
                 fontWeight: 600,
-                marginBottom: "4px",
+                lineHeight: 1.5,
               }}
             >
-              {`📎 ${fileName || ""}`}
-            </div>
-            <div style={{ ...baseTextStyle, color: "#667085" }}>
-              Report uploaded - analysing...
+              <i className="ti ti-file-check" aria-hidden="true" />
+              <span>{fileName || ""}</span>
             </div>
           </div>
         </div>
@@ -173,71 +240,134 @@ export default function MessageBubble({ role, content, fileName }) {
     );
   }
 
-  const isUser = role === "user";
+  if (role === "user") {
+    return (
+      <>
+        <style>
+          {`
+            @keyframes ${POP_ANIMATION_NAME} {
+              from {
+                opacity: 0;
+                transform: scale(0.96) translateY(8px);
+              }
+              to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+              }
+            }
+          `}
+        </style>
+        <div style={rowStyle}>
+          <div
+            aria-hidden="true"
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              background: palette.gradient,
+              color: "#ffffff",
+              fontSize: "16px",
+            }}
+          >
+            <i className="ti ti-user" />
+          </div>
+
+          <div
+            style={{
+              background: palette.gradient,
+              color: "#ffffff",
+              padding: "10px 12px",
+              borderRadius: "18px 4px 18px 18px",
+              maxWidth: "320px",
+              fontSize: "13px",
+              lineHeight: 1.6,
+              whiteSpace: "pre-wrap",
+              boxShadow: "0 10px 24px rgba(0,0,0,0.22)",
+            }}
+          >
+            {content}
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
       <style>
         {`
-          @keyframes messageBubbleFadeUp {
+          @keyframes ${POP_ANIMATION_NAME} {
             from {
               opacity: 0;
-              transform: translateY(8px);
+              transform: scale(0.96) translateY(8px);
             }
             to {
               opacity: 1;
-              transform: translateY(0);
+              transform: scale(1) translateY(0);
             }
           }
         `}
       </style>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: isUser ? "flex-end" : "flex-start",
-          alignItems: "flex-end",
-          gap: "8px",
-          animation: "messageBubbleFadeUp 220ms ease-out",
-        }}
-      >
-        {!isUser && (
-          <div
-            aria-hidden="true"
-            style={{
-              ...avatarStyle,
-              background: "#F2F4F7",
-            }}
-          >
-            🤖
-          </div>
-        )}
+      <div style={rowStyle}>
+        <div
+          aria-hidden="true"
+          style={{
+            width: "32px",
+            height: "32px",
+            borderRadius: "12px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            background: "#1e1e35",
+            border: `1px solid ${palette.accent}40`,
+            color: palette.accent,
+            fontSize: "16px",
+          }}
+        >
+          <i className="ti ti-robot" />
+        </div>
 
         <div
           style={{
-            background: isUser ? "#1D9E75" : "#F2F4F7",
-            color: isUser ? "#FFFFFF" : "#1D2939",
+            background: "#1e1e35",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: "4px 18px 18px 18px",
+            color: "#e2e8f0",
             padding: "10px 12px",
-            borderRadius: isUser ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
             maxWidth: "320px",
-            ...(isUser ? baseTextStyle : assistantTextStyle),
           }}
         >
-          {isUser ? content : renderAssistantContent(content)}
-        </div>
+          {severityStyle ? (
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+                fontSize: "10px",
+                padding: "3px 10px",
+                borderRadius: "20px",
+                border: `1px solid ${severityStyle.borderColor}`,
+                color: severityStyle.color,
+                background: severityStyle.background,
+                marginBottom: "8px",
+              }}
+            >
+              <i className="ti ti-activity" aria-hidden="true" />
+              <span>{sev}</span>
+            </div>
+          ) : null}
 
-        {isUser && (
-          <div
-            aria-hidden="true"
-            style={{
-              ...avatarStyle,
-              background: "#D8F3E9",
-              color: "#1D9E75",
-            }}
-          >
-            You
+          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+            {String(content || "")
+              .split("\n")
+              .map((line, index) => renderAssistantLine(line, index, palette))}
           </div>
-        )}
+        </div>
       </div>
     </>
   );

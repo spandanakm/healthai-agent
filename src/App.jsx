@@ -12,7 +12,7 @@ const appStyle = {
   height: "100vh",
   display: "flex",
   flexDirection: "column",
-  background: "#FFFFFF",
+  background: "#0f0f1a",
 };
 
 const errorBannerStyle = {
@@ -21,8 +21,9 @@ const errorBannerStyle = {
   justifyContent: "space-between",
   gap: "12px",
   padding: "8px 12px",
-  background: "#FCEBEB",
-  color: "#A32D2D",
+  background: "#2d1515",
+  color: "#fca5a5",
+  borderBottom: "1px solid #EF444440",
   fontSize: "12px",
   lineHeight: 1.5,
 };
@@ -32,10 +33,12 @@ const sectionPaddingStyle = {
 };
 
 const disclaimerStyle = {
-  padding: "10px 16px 6px",
-  textAlign: "center",
+  background: "#0f0f1a",
+  color: "#94a3b8",
   fontSize: "10px",
-  color: "#667085",
+  textAlign: "center",
+  padding: "6px",
+  letterSpacing: "0.3px",
 };
 
 const clearButtonStyle = {
@@ -88,13 +91,14 @@ export default function App() {
         </div>
       ) : null}
 
-      <ChatWindow messages={activeHistory} loading={loading} />
+      <ChatWindow messages={activeHistory} loading={loading} mode={mode} />
 
       {showQuickButtons ? (
         <QuickButtons
           questions={quickQuestions}
           loading={loading}
           onSelect={sendMessage}
+          mode={mode}
         />
       ) : null}
 
@@ -112,7 +116,7 @@ export default function App() {
         For informational purposes only. Always consult a real doctor.
       </div>
 
-      <InputBar onSend={sendMessage} loading={loading} />
+      <InputBar onSend={sendMessage} loading={loading} mode={mode} />
     </div>
   );
 }
