@@ -4,6 +4,11 @@ const baseTextStyle = {
   whiteSpace: "pre-wrap",
 };
 
+const assistantTextStyle = {
+  fontSize: "13px",
+  lineHeight: 1.55,
+};
+
 const avatarStyle = {
   width: "32px",
   height: "32px",
@@ -15,6 +20,103 @@ const avatarStyle = {
   fontSize: "13px",
   fontWeight: 600,
 };
+
+const assistantHeaderPattern = /^(\p{Emoji_Presentation}|\p{Extended_Pictographic})\s+[A-Z0-9][A-Z0-9\s&/:-]*$/u;
+
+const assistantBlockStyle = {
+  margin: 0,
+  fontSize: "13px",
+  lineHeight: 1.55,
+};
+
+const assistantListRowStyle = {
+  display: "flex",
+  alignItems: "flex-start",
+  gap: "8px",
+  margin: 0,
+  fontSize: "13px",
+  lineHeight: 1.55,
+};
+
+const assistantBulletStyle = {
+  width: "8px",
+  height: "8px",
+  borderRadius: "999px",
+  background: "#1D9E75",
+  flexShrink: 0,
+  marginTop: "6px",
+};
+
+function renderAssistantContent(content) {
+  return String(content || "").split("\n").map((rawLine, index) => {
+    const line = rawLine.trim();
+
+    if (!line) {
+      return <div key={`assistant-spacer-${index}`} style={{ height: "8px" }} />;
+    }
+
+    if (assistantHeaderPattern.test(line)) {
+      return (
+        <div
+          key={`assistant-header-${index}`}
+          style={{
+            ...assistantBlockStyle,
+            fontWeight: 700,
+            background: "#E8F7F1",
+            padding: "6px 10px",
+            borderRadius: "8px",
+            marginBottom: "6px",
+          }}
+        >
+          {line}
+        </div>
+      );
+    }
+
+    if (line.startsWith("**") && line.endsWith("**") && line.length > 4) {
+      return (
+        <div
+          key={`assistant-bold-${index}`}
+          style={{ ...assistantBlockStyle, fontWeight: 700 }}
+        >
+          {line.slice(2, -2)}
+        </div>
+      );
+    }
+
+    if (line.startsWith("- ") || line.startsWith("\u2022 ")) {
+      return (
+        <div key={`assistant-list-${index}`} style={assistantListRowStyle}>
+          <span aria-hidden="true" style={assistantBulletStyle} />
+          <span>{line.slice(2).trim()}</span>
+        </div>
+      );
+    }
+
+    if (line.includes("\u26A0\uFE0F")) {
+      return (
+        <div
+          key={`assistant-warning-${index}`}
+          style={{
+            ...assistantBlockStyle,
+            background: "#FFFBEB",
+            color: "#92400E",
+            padding: "6px 10px",
+            borderRadius: "6px",
+          }}
+        >
+          {line}
+        </div>
+      );
+    }
+
+    return (
+      <p key={`assistant-paragraph-${index}`} style={assistantBlockStyle}>
+        {line}
+      </p>
+    );
+  });
+}
 
 export default function MessageBubble({ role, content, fileName }) {
   if (role === "file") {
@@ -118,10 +220,10 @@ export default function MessageBubble({ role, content, fileName }) {
             padding: "10px 12px",
             borderRadius: isUser ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
             maxWidth: "320px",
-            ...baseTextStyle,
+            ...(isUser ? baseTextStyle : assistantTextStyle),
           }}
         >
-          {content}
+          {isUser ? content : renderAssistantContent(content)}
         </div>
 
         {isUser && (

@@ -1,34 +1,13 @@
 import { useRef, useState } from "react";
 
-const ACCEPTED_TYPES = "image/*,.txt,.csv,.md,.json,.xml";
-const uploadBorderColor = "#B7DCCF";
+const ACCEPTED_TYPES = "image/*,text/*,application/json,.txt,.csv,.md";
+const TEAL = "#1D9E75";
+const LIGHT_TEAL = "#E8F7F1";
 
-const uploadBoxStyle = {
-  border: `2px dashed ${uploadBorderColor}`,
-  borderRadius: "18px",
-  padding: "20px 18px",
-  background: "#F8FCFA",
-  color: "#344054",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "12px",
-  textAlign: "center",
-  cursor: "pointer",
-  transition: "border-color 180ms ease, background 180ms ease, box-shadow 180ms ease",
-};
-
-const iconStyle = {
-  width: "44px",
-  height: "44px",
-  borderRadius: "999px",
-  background: "#E8F7F1",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  color: "#1D9E75",
-};
+function formatFileSize(sizeInBytes) {
+  const kb = Number(sizeInBytes || 0) / 1024;
+  return `${Math.max(kb, 0.1).toFixed(kb >= 10 ? 0 : 1)} KB`;
+}
 
 export default function UploadZone({ onFile, attachedFile, onClear }) {
   const inputRef = useRef(null);
@@ -82,19 +61,68 @@ export default function UploadZone({ onFile, attachedFile, onClear }) {
       <div style={{ paddingTop: "10px" }}>
         <div
           style={{
-            display: "inline-flex",
+            display: "flex",
             alignItems: "center",
-            gap: "10px",
-            padding: "10px 14px",
-            borderRadius: "999px",
-            background: "#E8F7F1",
-            color: "#1D9E75",
-            border: "1px solid #B8E5D4",
-            fontSize: "14px",
-            fontWeight: 600,
+            justifyContent: "space-between",
+            gap: "12px",
+            border: `2px solid ${TEAL}`,
+            borderRadius: "12px",
+            padding: "16px",
+            background: "#F8FCFA",
           }}
         >
-          <span>{`\uD83D\uDCCE ${attachedFile.name}`}</span>
+          <div
+            style={{
+              minWidth: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                width: "24px",
+                height: "24px",
+                borderRadius: "999px",
+                background: LIGHT_TEAL,
+                color: TEAL,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                fontSize: "14px",
+                fontWeight: 700,
+              }}
+            >
+              {"\u2713"}
+            </span>
+
+            <div style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  color: "#101828",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {attachedFile.name}
+              </div>
+              <div
+                style={{
+                  color: "#667085",
+                  fontSize: "12px",
+                  marginTop: "2px",
+                }}
+              >
+                {formatFileSize(attachedFile.size)}
+              </div>
+            </div>
+          </div>
+
           <button
             type="button"
             onClick={onClear}
@@ -102,11 +130,12 @@ export default function UploadZone({ onFile, attachedFile, onClear }) {
             style={{
               border: "none",
               background: "transparent",
-              color: "#1D9E75",
+              color: TEAL,
               cursor: "pointer",
-              fontSize: "16px",
+              fontSize: "20px",
               lineHeight: 1,
               padding: 0,
+              flexShrink: 0,
             }}
           >
             {"\u2715"}
@@ -141,38 +170,49 @@ export default function UploadZone({ onFile, attachedFile, onClear }) {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         style={{
-          ...uploadBoxStyle,
-          borderColor: isDragging ? "#1D9E75" : uploadBorderColor,
-          background: isDragging ? "#ECFDF3" : uploadBoxStyle.background,
+          border: `2px ${isDragging ? "solid" : "dashed"} ${TEAL}`,
+          borderRadius: "12px",
+          padding: "16px",
+          background: isDragging ? "#ECFDF3" : "#FFFFFF",
+          color: "#344054",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+          textAlign: "center",
+          cursor: "pointer",
+          transition: "border-color 180ms ease, background 180ms ease, box-shadow 180ms ease",
           boxShadow: isDragging ? "0 0 0 4px rgba(29, 158, 117, 0.12)" : "none",
         }}
       >
-        <div style={iconStyle} aria-hidden="true">
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M12 16V5M12 5L7.5 9.5M12 5L16.5 9.5M5 19H19"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+        <div
+          aria-hidden="true"
+          style={{
+            fontSize: "24px",
+            lineHeight: 1,
+          }}
+        >
+          {"\uD83D\uDCCE"}
         </div>
 
         <div
           style={{
-            fontSize: "14px",
+            fontSize: "16px",
             fontWeight: 600,
-            color: "#1D2939",
+            color: "#101828",
           }}
         >
-          Upload a medical report image or text file
+          Upload Medical Report
+        </div>
+        <div
+          style={{
+            fontSize: "13px",
+            lineHeight: 1.5,
+            color: "#667085",
+          }}
+        >
+          Supports: images (JPG, PNG) and text files (TXT, CSV, PDF text)
         </div>
       </div>
     </div>

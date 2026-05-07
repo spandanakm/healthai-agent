@@ -59,7 +59,8 @@ export default function useChat() {
             content: message.content ?? "",
           })),
         MODES[activeMode].system,
-        activeFile
+        activeFile,
+        activeMode
       );
 
       setHistory((prevHistory) => ({
