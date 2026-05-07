@@ -24,6 +24,7 @@ const errorBannerStyle = {
   background: "#FCEBEB",
   color: "#A32D2D",
   fontSize: "12px",
+  lineHeight: 1.5,
 };
 
 const sectionPaddingStyle = {
@@ -73,7 +74,9 @@ export default function App() {
 
       {error ? (
         <div style={errorBannerStyle}>
-          <span>{error}</span>
+          <span style={{ whiteSpace: "normal", wordBreak: "break-word" }}>
+            {error}
+          </span>
           <button
             type="button"
             onClick={clearError}
